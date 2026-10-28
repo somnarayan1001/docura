@@ -60,7 +60,11 @@ h1 span { color: var(--accent); }
 .privacy { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--good); background: var(--good-soft); padding: 6px 12px; border-radius: 999px; font-weight: 500; }
 .privacy svg { flex: none; }
 
-.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--sunken); padding: 6px; border-radius: 14px; }
+.cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: -10px; }
+.cat { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 600 14px var(--f-body); padding: 8px 16px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background .15s, color .15s; }
+.cat:hover { color: var(--fg); border-color: var(--muted); }
+.cat[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; background: var(--sunken); padding: 6px; border-radius: 14px; }
 .tab { appearance: none; border: 0; background: transparent; color: var(--muted); font: 600 15px var(--f-body); padding: 12px 8px; border-radius: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .tab small { font-weight: 400; font-size: 12px; }
 .tab:hover { color: var(--fg); }
@@ -117,6 +121,14 @@ button { font-family: var(--f-body); }
 .field .hint { color: var(--muted); font-size: 13px; }
 .field .err { color: var(--bad); font-size: 13px; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.field select { font: 15px var(--f-body); padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); max-width: 420px; }
+.range-row { display: flex; align-items: center; gap: 14px; max-width: 420px; }
+.range-row input { flex: 1; accent-color: var(--accent); }
+.range-row output { font-family: var(--f-mono); font-weight: 500; min-width: 3.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+.opts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.choices.formats { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.fmt { font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; background: var(--sunken); color: var(--fg); padding: 1px 6px; border-radius: 4px; }
+.fmt.warn { background: var(--bad-soft); color: var(--bad); }
 
 .action { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .action .note { color: var(--muted); font-size: 13px; }
@@ -208,7 +220,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   <header>
     <div>
       <h1>PDF <span>Press</span></h1>
-      <p class="tagline">Merge, split and compress PDFs right in your browser.</p>
+      <p class="tagline">PDF and image tools that run right in your browser.</p>
     </div>
     <div class="privacy">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
@@ -216,10 +228,21 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     </div>
   </header>
 
+  <div class="cats" role="tablist" aria-label="Tool category">
+    <button class="cat" role="tab" id="cat-pdf" aria-selected="true" data-cat="pdf">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+      PDF tools</button>
+    <button class="cat" role="tab" id="cat-img" aria-selected="false" data-cat="img">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>
+      Image tools</button>
+  </div>
+
   <nav class="tabs" role="tablist" aria-label="Tools">
-    <button class="tab" role="tab" id="tab-merge" aria-selected="true" data-tool="merge"><b>Merge</b><small>Combine into one PDF</small></button>
-    <button class="tab" role="tab" id="tab-split" aria-selected="false" data-tool="split"><b>Split</b><small>Break into parts</small></button>
-    <button class="tab" role="tab" id="tab-compress" aria-selected="false" data-tool="compress"><b>Compress</b><small>Shrink file size</small></button>
+    <button class="tab" role="tab" id="tab-merge" aria-selected="true" data-tool="merge" data-cat="pdf"><b>Merge</b><small>Combine into one PDF</small></button>
+    <button class="tab" role="tab" id="tab-split" aria-selected="false" data-tool="split" data-cat="pdf"><b>Split</b><small>Break into parts</small></button>
+    <button class="tab" role="tab" id="tab-compress" aria-selected="false" data-tool="compress" data-cat="pdf"><b>Compress</b><small>Shrink file size</small></button>
+    <button class="tab" role="tab" id="tab-imgcompress" aria-selected="false" data-tool="imgcompress" data-cat="img" hidden><b>Compress</b><small>Shrink photos and graphics</small></button>
+    <button class="tab" role="tab" id="tab-convert" aria-selected="false" data-tool="convert" data-cat="img" hidden><b>Convert</b><small>Change image format</small></button>
   </nav>
 
   <!-- MERGE -->
@@ -311,8 +334,93 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     <div id="res-compress"></div>
   </section>
 
+  <!-- IMAGE COMPRESS -->
+  <section class="panel" id="panel-imgcompress" role="tabpanel" aria-labelledby="tab-imgcompress" hidden>
+    <div class="drop" data-drop="imgcompress" data-more="Add more images">
+      <div class="big">Drop images to compress</div>
+      <p>JPG, PNG, WebP, GIF, BMP, TIFF, HEIC and AVIF. Mix formats freely.</p>
+      <div class="drop-actions">
+        <label class="btn primary" for="in-imgcompress">Choose images</label>
+        <button class="btn" data-sample="imgcompress">Try with sample images</button>
+      </div>
+      <input type="file" id="in-imgcompress" accept="image/*,.heic,.heif,.tif,.tiff,.avif,.bmp,.ico" multiple hidden>
+    </div>
+    <ul class="files" id="list-imgcompress"></ul>
+    <div class="opts" id="opts-imgcompress" hidden>
+      <h3>Compression settings</h3>
+      <div class="opts-grid">
+        <div class="field">
+          <label for="img-quality">Quality</label>
+          <div class="range-row"><input type="range" id="img-quality" min="10" max="95" value="70"><output id="img-quality-out" for="img-quality">70</output></div>
+          <span class="hint">70 is a good balance. Lower means smaller files.</span>
+        </div>
+        <div class="field">
+          <label for="img-max">Resize</label>
+          <select id="img-max">
+            <option value="0">Keep original size</option>
+            <option value="3840">Longest side 3840 px (4K)</option>
+            <option value="2560">Longest side 2560 px</option>
+            <option value="1920" selected>Longest side 1920 px (Full HD)</option>
+            <option value="1280">Longest side 1280 px</option>
+            <option value="800">Longest side 800 px</option>
+          </select>
+          <span class="hint">Smaller images are never enlarged.</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Save as</label>
+        <div class="choices" role="radiogroup" aria-label="Output format">
+          <label class="choice"><input type="radio" name="img-out" id="img-out-keep" value="keep" checked><b>Same format</b><span>Each file keeps its format where possible</span></label>
+          <label class="choice"><input type="radio" name="img-out" id="img-out-webp" value="webp"><b>WebP</b><span>Usually the smallest, keeps transparency</span></label>
+          <label class="choice"><input type="radio" name="img-out" id="img-out-jpeg" value="jpeg"><b>JPG</b><span>Opens everywhere, no transparency</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="action" id="act-imgcompress" hidden>
+      <button class="btn primary" id="go-imgcompress">Compress images</button>
+      <span class="note" id="note-imgcompress"></span>
+    </div>
+    <div id="status-imgcompress"></div>
+    <div id="res-imgcompress"></div>
+  </section>
+
+  <!-- IMAGE CONVERT -->
+  <section class="panel" id="panel-convert" role="tabpanel" aria-labelledby="tab-convert" hidden>
+    <div class="drop" data-drop="convert" data-more="Add more images">
+      <div class="big">Drop images to convert</div>
+      <p>Each file's format is detected automatically, so you can mix JPG, PNG, WebP, HEIC and more.</p>
+      <div class="drop-actions">
+        <label class="btn primary" for="in-convert">Choose images</label>
+        <button class="btn" data-sample="convert">Try with sample images</button>
+      </div>
+      <input type="file" id="in-convert" accept="image/*,.heic,.heif,.tif,.tiff,.avif,.bmp,.ico,.svg" multiple hidden>
+    </div>
+    <ul class="files" id="list-convert"></ul>
+    <div class="opts" id="opts-convert" hidden>
+      <h3>Convert to</h3>
+      <div class="choices formats" role="radiogroup" aria-label="Target format" id="convert-targets">
+        <label class="choice"><input type="radio" name="target" id="target-jpeg" value="jpeg" checked><b>JPG</b><span>Photos</span></label>
+        <label class="choice"><input type="radio" name="target" id="target-png" value="png"><b>PNG</b><span>Lossless</span></label>
+        <label class="choice"><input type="radio" name="target" id="target-webp" value="webp"><b>WebP</b><span>Web, small</span></label>
+        <label class="choice" id="target-avif-wrap" hidden><input type="radio" name="target" id="target-avif" value="avif"><b>AVIF</b><span>Smallest</span></label>
+        <label class="choice"><input type="radio" name="target" id="target-bmp" value="bmp"><b>BMP</b><span>Uncompressed</span></label>
+      </div>
+      <div class="field" id="field-conv-quality">
+        <label for="conv-quality">Quality</label>
+        <div class="range-row"><input type="range" id="conv-quality" min="10" max="100" value="92"><output id="conv-quality-out" for="conv-quality">92</output></div>
+      </div>
+      <span class="hint" id="convert-hint" style="color:var(--muted);font-size:13px"></span>
+    </div>
+    <div class="action" id="act-convert" hidden>
+      <button class="btn primary" id="go-convert">Convert images</button>
+      <span class="note" id="note-convert"></span>
+    </div>
+    <div id="status-convert"></div>
+    <div id="res-convert"></div>
+  </section>
+
   <footer>
-    <p>Everything runs on your device using pdf-lib and PDF.js. Nothing is uploaded.</p>
+    <p>Everything runs on your device using pdf-lib, PDF.js and your browser's own image tools. Nothing is uploaded.</p>
     <p>Password-protected PDFs need to be unlocked before they can be processed.</p>
     <p>If something goes wrong, you can download an error report to send in. It includes your browser type, device memory, file sizes and page counts, never your files or their names.</p>
   </footer>
@@ -349,7 +457,9 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   const LOG_ENDPOINT = "";
   const APP_VERSION = "2026-10-28.4";
   let diag = {};
-  const fileFacts = list => list.map(x => ({ sizeMB: +(x.size / 1048576).toFixed(2), pages: x.pages, sample: x.sample }));
+  const fileFacts = list => list.map(x => x.format
+    ? { sizeMB: +(x.size / 1048576).toFixed(2), format: x.format, ext: (x.name.match(/\.([^.]+)$/) || [])[1] || "", dims: x.width + "x" + x.height, sample: x.sample }
+    : { sizeMB: +(x.size / 1048576).toFixed(2), pages: x.pages, sample: x.sample });
   function logError(tool, step, err, extra = {}) {
     // Status messages mention file names; swap them out so reports stay anonymous
     step = String(step || "");
@@ -401,6 +511,11 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       try { await dl.save({ filename, data: blob }); toast("Downloaded " + filename); return "saved"; }
       catch (e) {
         if (e && e.code === "declined") return "declined";
+        if (e && e.code === "rejected_extension") {
+          // e.g. .bmp/.avif inside claude.ai: hand it over inside a .zip instead
+          const zip = new JSZip(); zip.file(filename, bytes);
+          return saveFile(filename.replace(/\.[^.]+$/, "") + ".zip", await zip.generateAsync({ type: "uint8array" }), "application/zip", statusId);
+        }
         if (e && e.code === "rate_limited") { toast("A save prompt is already open. Finish that one first."); return "error"; }
         setStatus(statusId, "err", "Couldn't save the file. Saving may not be available here.", null, logError(statusId, "saving " + mime, e, { sizeMB: +(blob.size / 1048576).toFixed(2) }));
         return "error";
@@ -493,6 +608,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     return item;
   }
   async function readFiles(tool, fileList) {
+    if (IMG_TOOLS.includes(tool)) return readImages(tool, fileList);
     const files = [...fileList].filter(f => /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name));
     if (!files.length) return setStatus(tool, "err", "Those weren't PDF files. Choose files ending in .pdf.");
     setStatus(tool, "info", "Reading " + files.length + (files.length > 1 ? " files…" : " file…"));
@@ -545,8 +661,9 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   };
 
   // ---------- state ----------
-  const state = { merge: [], split: [], compress: [] };
-  const multi = { merge: true, split: false, compress: true };
+  const state = { merge: [], split: [], compress: [], imgcompress: [], convert: [] };
+  const multi = { merge: true, split: false, compress: true, imgcompress: true, convert: true };
+  const IMG_TOOLS = ["imgcompress", "convert"];
 
   function addItems(tool, items) {
     if (!items.length) return;
@@ -562,7 +679,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const thumb = el("div", { class: "thumb" }, item.thumb ? cloneCanvas(item.thumb) : null);
     const meta = el("div", { class: "meta" }, [
       el("div", { class: "name", title: item.name }, [document.createTextNode(item.name), item.sample ? el("span", { class: "tag", text: "Sample" }) : null]),
-      el("div", { class: "sub", text: item.pages + (item.pages === 1 ? " page" : " pages") + " · " + fmtSize(item.size) }),
+      item.format ? imageSub(item) : el("div", { class: "sub", text: item.pages + (item.pages === 1 ? " page" : " pages") + " · " + fmtSize(item.size) }),
     ]);
     const actions = el("div", { class: "row-actions" });
     if (tool === "merge") {
@@ -611,7 +728,12 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     $("#act-" + tool).hidden = !has;
     const opts = $("#opts-" + tool); if (opts) opts.hidden = !has;
     const drop = $(`[data-drop="${tool}"]`);
-    drop.querySelector(".big").textContent = has && tool !== "split" ? "Add more PDFs" : has ? "Choose a different PDF" : drop.dataset.title;
+    drop.querySelector(".big").textContent = has && tool !== "split" ? (drop.dataset.more || "Add more PDFs") : has ? "Choose a different PDF" : drop.dataset.title;
+    if (IMG_TOOLS.includes(tool)) {
+      const formats = [...new Set(list.map(x => FMT[x.format].label))].join(", ");
+      $("#note-" + tool).textContent = list.length + (list.length === 1 ? " image · " : " images · ") + fmtSize(list.reduce((s, x) => s + x.size, 0)) + (formats ? " · " + formats : "");
+      if (tool === "convert") updateConvertHint();
+    }
     if (tool === "merge") {
       const pages = list.reduce((s, x) => s + x.pages, 0);
       $("#go-merge").disabled = list.length < 2;
@@ -625,7 +747,12 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   async function makeZip(outputs) {
     const zip = new JSZip();
     const used = new Set();
-    for (const o of outputs) { let n = o.name, k = 2; while (used.has(n)) n = baseName(o.name) + "-" + k++ + ".pdf"; used.add(n); zip.file(n, o.bytes); }
+    for (const o of outputs) {
+      const [, stem, ext = ""] = o.name.match(/^(.*?)(\.[^.]+)?$/);
+      let n = o.name, k = 2;
+      while (used.has(n)) n = stem + "-" + k++ + ext;
+      used.add(n); zip.file(n, o.bytes);
+    }
     return zip.generateAsync({ type: "uint8array" });
   }
   // Show the result card, then start the download straight away (a .zip when there are several files)
@@ -637,7 +764,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const note = $("#res-" + tool + " .dl-note");
     note.replaceChildren(el("span", { class: "spin" }), document.createTextNode("Starting your download…"));
     const r = outputs.length === 1
-      ? await saveFile(outputs[0].name, outputs[0].bytes, "application/pdf", tool)
+      ? await saveFile(outputs[0].name, outputs[0].bytes, outputs[0].mime || "application/pdf", tool)
       : await saveFile(zipName, await makeZip(outputs), "application/zip", tool);
     note.textContent = r === "saved" ? "Download started automatically. Use the buttons below to save it again."
       : r === "declined" ? "Download cancelled. Use the buttons below when you're ready."
@@ -658,6 +785,8 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
         const pct = 1 - o.bytes.byteLength / o.before;
         sub.append(document.createTextNode(fmtSize(o.before) + " → "), el("b", { text: fmtSize(o.bytes.byteLength) }), document.createTextNode(" · "));
         sub.append(el("span", { class: "saving" + (pct <= 0 ? " worse" : ""), text: pct > 0 ? Math.round(pct * 100) + "% smaller" : o.kept ? "Already optimized, original kept" : "No reduction" }));
+      } else if (o.label) {
+        sub.textContent = o.label + " · " + fmtSize(o.bytes.byteLength);
       } else {
         sub.textContent = (o.pages != null ? o.pages + (o.pages === 1 ? " page · " : " pages · ") : "") + fmtSize(o.bytes.byteLength);
       }
@@ -666,12 +795,12 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
         const pct = Math.max(0, 1 - o.bytes.byteLength / o.before);
         meta.append(el("div", { class: "bar" }, el("i", { style: "width:" + Math.round((1 - pct) * 100) + "%" })));
       }
-      box.append(el("div", { class: "out" }, [meta, el("button", { class: "btn" + (outputs.length === 1 ? " primary" : ""), text: "Download", onclick: () => saveFile(o.name, o.bytes, "application/pdf", tool) })]));
+      box.append(el("div", { class: "out" }, [meta, el("button", { class: "btn" + (outputs.length === 1 ? " primary" : ""), text: "Download", onclick: () => saveFile(o.name, o.bytes, o.mime || "application/pdf", tool) })]));
     }
     $("#res-" + tool).replaceChildren(box);
   }
 
-  const BUSY = { merge: "Merging…", split: "Splitting…", compress: "Compressing…" };
+  const BUSY = { merge: "Merging…", split: "Splitting…", compress: "Compressing…", imgcompress: "Compressing…", convert: "Converting…" };
   async function run(tool, fn) {
     const btn = $("#go-" + tool);
     const label = btn.textContent;
@@ -685,7 +814,9 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     try { await fn(); }
     catch (e) {
       const options = tool === "compress" ? { level: $('input[name="level"]:checked').value }
-        : tool === "split" ? { mode: $('input[name="split-mode"]:checked').value, ranges: $("#split-ranges").value, every: $("#split-n").value, join: $("#split-join").checked } : {};
+        : tool === "split" ? { mode: $('input[name="split-mode"]:checked').value, ranges: $("#split-ranges").value, every: $("#split-n").value, join: $("#split-join").checked }
+        : tool === "imgcompress" ? { quality: $("#img-quality").value, maxSide: $("#img-max").value, out: $('input[name="img-out"]:checked').value }
+        : tool === "convert" ? { target: $('input[name="target"]:checked').value, quality: $("#conv-quality").value } : {};
       const report = logError(tool, lastStep[tool], e, { files: fileFacts(state[tool]), options });
       setStatus(tool, "err", e.userMessage || "Something went wrong while processing. If the file is password protected, unlock it first. Otherwise, send the error details below so it can be fixed.", null, report);
     }
@@ -863,15 +994,288 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     await finish("compress", pct > 0 ? `Saved ${fmtSize(before - after)} (${pct}%)` : "These files are already compact", outputs, "compressed_pdfs.zip");
   }));
 
-  // ---------- wiring ----------
-  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
-    document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== "panel-" + t.dataset.tool);
-    try { localStorage.setItem("pdfpress-tab", t.dataset.tool); } catch (_) {}
-  }));
-  try { const last = localStorage.getItem("pdfpress-tab"); if (last) $("#tab-" + last)?.click(); } catch (_) {}
+  // ---------- IMAGES ----------
+  // `enc` = the browser can write this format (AVIF is checked at startup)
+  const FMT = {
+    jpeg: { label: "JPG", ext: "jpg", mime: "image/jpeg", enc: true },
+    png:  { label: "PNG", ext: "png", mime: "image/png", enc: true },
+    webp: { label: "WebP", ext: "webp", mime: "image/webp", enc: true },
+    avif: { label: "AVIF", ext: "avif", mime: "image/avif", enc: false },
+    bmp:  { label: "BMP", ext: "bmp", mime: "image/bmp", enc: true },
+    gif:  { label: "GIF", ext: "gif", mime: "image/gif" },
+    tiff: { label: "TIFF", ext: "tiff", mime: "image/tiff" },
+    heic: { label: "HEIC", ext: "heic", mime: "image/heic" },
+    ico:  { label: "ICO", ext: "ico", mime: "image/x-icon" },
+    svg:  { label: "SVG", ext: "svg", mime: "image/svg+xml" },
+  };
+  const EXT_ALIASES = { jpg: "jpeg", jpeg: "jpeg", jfif: "jpeg", png: "png", webp: "webp", avif: "avif", bmp: "bmp", gif: "gif", tif: "tiff", tiff: "tiff", heic: "heic", heif: "heic", ico: "ico", svg: "svg" };
+  const stripExt = n => n.replace(/\.[^.]+$/, "");
 
-  ["merge", "split", "compress"].forEach(tool => {
+  // Identify the real format from the file's first bytes, whatever its name says
+  function sniff(b) {
+    const s = (o, n) => String.fromCharCode(...b.subarray(o, o + n));
+    if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return "jpeg";
+    if (b[0] === 0x89 && s(1, 3) === "PNG") return "png";
+    if (s(0, 4) === "GIF8") return "gif";
+    if (s(0, 4) === "RIFF" && s(8, 4) === "WEBP") return "webp";
+    if (s(0, 2) === "BM") return "bmp";
+    if (s(0, 4) === "II*\0" || s(0, 4) === "MM\0*") return "tiff";
+    if (b[0] === 0 && b[1] === 0 && b[2] === 1 && b[3] === 0) return "ico";
+    if (s(4, 4) === "ftyp") {
+      const major = s(8, 4), compat = s(16, Math.max(0, Math.min(b.length, 64) - 16));
+      if (/^avi[fs]$/.test(major) || compat.includes("avif")) return "avif";
+      if (/^(hei[cxms]|hev[cx]|mif1|msf1)$/.test(major)) return "heic";
+    }
+    const text = new TextDecoder().decode(b).replace(/^﻿/, "").trimStart().toLowerCase();
+    if (text.startsWith("<svg") || (text.startsWith("<?xml") || text.startsWith("<!--")) && text.includes("<svg")) return "svg";
+    return null;
+  }
+
+  const scriptCache = {};
+  const loadScript = src => scriptCache[src] || (scriptCache[src] = new Promise((ok, fail) => {
+    const s = el("script", { src });
+    s.onload = ok; s.onerror = () => { delete scriptCache[src]; fail(new Error("Couldn't load the decoder for this format. Check your internet connection.")); };
+    document.head.append(s);
+  }));
+
+  // Returns something drawImage accepts (ImageBitmap, <img> or <canvas>) plus its size
+  async function decodeImage(item) {
+    let blob = item.blob;
+    if (item.format === "heic") {
+      if (!item.pngBlob) {
+        await loadScript("https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js");
+        const r = await heic2any({ blob, toType: "image/png" });
+        item.pngBlob = Array.isArray(r) ? r[0] : r;
+      }
+      blob = item.pngBlob;
+    }
+    if (item.format === "tiff") {
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js");
+      const buf = await blob.arrayBuffer();
+      const ifd = UTIF.decode(buf)[0];
+      UTIF.decodeImage(buf, ifd);
+      const c = document.createElement("canvas");
+      c.width = ifd.width; c.height = ifd.height;
+      c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(UTIF.toRGBA8(ifd)), ifd.width, ifd.height), 0, 0);
+      return { src: c, width: c.width, height: c.height };
+    }
+    if (item.format !== "svg" && window.createImageBitmap) {
+      try { const bmp = await createImageBitmap(blob); return { src: bmp, width: bmp.width, height: bmp.height }; } catch (_) {}
+    }
+    const url = URL.createObjectURL(item.format === "svg" ? new Blob([blob], { type: "image/svg+xml" }) : blob);
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (!w || !h) { w = 1024; h = 1024; } // SVGs without a set size
+      return { src: img, width: w, height: h };
+    } catch (e) {
+      throw new Error("This browser can't open " + FMT[item.format].label + " images.");
+    } finally { setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  }
+
+  function encodeBMP(canvas) {
+    const w = canvas.width, h = canvas.height, d = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+    const row = Math.ceil(w * 3 / 4) * 4, size = 54 + row * h, buf = new ArrayBuffer(size), v = new DataView(buf), u = new Uint8Array(buf);
+    v.setUint16(0, 0x424D); v.setUint32(2, size, true); v.setUint32(10, 54, true); v.setUint32(14, 40, true);
+    v.setInt32(18, w, true); v.setInt32(22, h, true); v.setUint16(26, 1, true); v.setUint16(28, 24, true); v.setUint32(34, row * h, true);
+    for (let y = 0; y < h; y++) {
+      let o = 54 + (h - 1 - y) * row;
+      for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; u[o++] = d[i + 2]; u[o++] = d[i + 1]; u[o++] = d[i]; }
+    }
+    return new Blob([buf], { type: "image/bmp" });
+  }
+
+  // Draw at w×h and encode; on devices that refuse a canvas this big, retry smaller
+  const IMG_MAX_PIXELS = 50e6;
+  async function renderImage(decoded, w, h, target, quality) {
+    const fit = Math.min(1, Math.sqrt(IMG_MAX_PIXELS / (w * h)), MAX_SIDE * 2 / Math.max(w, h));
+    let scale = fit;
+    for (let attempt = 1; attempt <= 4; attempt++, scale *= 0.7) {
+      const cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+      diag.image = { ...diag.image, attempt, canvas: cw + "x" + ch, target };
+      const canvas = document.createElement("canvas");
+      canvas.width = cw; canvas.height = ch;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { diag.image.lastFailure = "getContext returned null"; continue; }
+      try {
+        // JPG and BMP have no transparency, so transparent areas become white
+        if (target === "jpeg" || target === "bmp") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch); }
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(decoded.src, 0, 0, cw, ch);
+        const blob = target === "bmp" ? encodeBMP(canvas) : await new Promise(r => canvas.toBlob(r, FMT[target].mime, quality));
+        canvas.width = canvas.height = 0;
+        if (blob && blob.size) {
+          if (blob.type && blob.type !== FMT[target].mime) throw Object.assign(new Error("Browser wrote " + blob.type + " instead of " + FMT[target].mime), { userMessage: "This browser can't save " + FMT[target].label + " images. Pick another format." });
+          return { blob, width: cw, height: ch, shrunk: scale < 1 };
+        }
+        diag.image.lastFailure = "toBlob returned " + (blob ? "an empty image" : "null");
+      } catch (e) { if (e.userMessage) throw e; diag.image.lastFailure = "draw/encode: " + (e && e.message || e); }
+      canvas.width = canvas.height = 0;
+    }
+    throw Object.assign(new Error("Image could not be encoded after 4 attempts (" + diag.image.lastFailure + ")"), { userMessage: "This image is too large for this browser to process. Try a smaller size, or use a computer with more memory." });
+  }
+
+  function imageSub(item) {
+    const ext = EXT_ALIASES[(item.name.match(/\.([^.]+)$/) || [])[1]?.toLowerCase()];
+    const sub = el("div", { class: "sub" }, el("span", { class: "fmt", text: FMT[item.format].label }));
+    sub.append(document.createTextNode(" " + item.width + "×" + item.height + " · " + fmtSize(item.size)));
+    if (ext && ext !== item.format) sub.append(document.createTextNode(" · "), el("span", { class: "fmt warn", title: "The file name says " + FMT[ext].label + ", but the contents are " + FMT[item.format].label, text: "named ." + item.name.split(".").pop() }));
+    return sub;
+  }
+
+  async function loadImageItem(file, sample) {
+    const format = sniff(new Uint8Array(await file.slice(0, 512).arrayBuffer()));
+    if (!format) throw Object.assign(new Error("Unrecognised image format"), { reason: "isn't a supported image" });
+    const item = { id: ++uid, name: file.name, size: file.size, blob: file, format, sample: !!sample, thumb: null };
+    const d = await decodeImage(item);
+    item.width = d.width; item.height = d.height;
+    const t = document.createElement("canvas");
+    const k = Math.min(1, 104 / d.width, 132 / d.height);
+    t.width = Math.max(1, Math.round(d.width * k)); t.height = Math.max(1, Math.round(d.height * k));
+    t.getContext("2d").drawImage(d.src, 0, 0, t.width, t.height);
+    item.thumb = t;
+    if (d.src.close) d.src.close();
+    return item;
+  }
+  async function readImages(tool, fileList) {
+    const files = [...fileList];
+    if (!files.length) return [];
+    const out = [], failed = [];
+    for (let i = 0; i < files.length; i++) {
+      setStatus(tool, "info", `Reading ${files[i].name} (${i + 1} of ${files.length})…`, i / files.length);
+      await tick();
+      try { out.push(await loadImageItem(files[i])); }
+      catch (e) {
+        failed.push(files[i].name + " (" + (e.reason || e.message || "couldn't be read") + ")");
+        if (!e.reason) logError(tool, "reading image", e, { file: { sizeMB: +(files[i].size / 1048576).toFixed(2), type: files[i].type, ext: (files[i].name.match(/\.([^.]+)$/) || [])[1] || "" } });
+      }
+    }
+    setStatus(tool, failed.length ? "err" : "", failed.length ? "Skipped: " + failed.join(", ") : "");
+    return out;
+  }
+
+  async function makeSampleImages() {
+    const mk = async (name, w, h, type, q, draw) => {
+      const c = document.createElement("canvas"); c.width = w; c.height = h;
+      draw(c.getContext("2d"), w, h);
+      return loadImageItem(new File([await new Promise(r => c.toBlob(r, type, q))], name), true);
+    };
+    const photo = (g, w, h, a, b) => {
+      const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, a); gr.addColorStop(1, b);
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      const img = g.getImageData(0, 0, w, h);
+      for (let i = 0; i < img.data.length; i += 4) { const n = (Math.random() - .5) * 40; img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n; }
+      g.putImageData(img, 0, 0);
+    };
+    return [
+      await mk("Sunset.png", 2400, 1600, "image/png", undefined, (g, w, h) => photo(g, w, h, "#ff7a3d", "#3b1d6e")),
+      await mk("Beach.jpg", 3000, 2000, "image/jpeg", 0.95, (g, w, h) => photo(g, w, h, "#7fd3ff", "#e9d8a6")),
+      await mk("Logo.webp", 800, 800, "image/webp", 0.95, (g, w, h) => {
+        g.fillStyle = "#2f4fe0"; g.beginPath(); g.arc(w / 2, h / 2, w * .4, 0, 7); g.fill();
+        g.fillStyle = "#fff"; g.font = "bold 220px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("PP", w / 2, h / 2);
+      }),
+    ];
+  }
+  samples.imgcompress = makeSampleImages;
+  samples.convert = makeSampleImages;
+
+  const fitInside = (w, h, max) => { const k = max ? Math.min(1, max / Math.max(w, h)) : 1; return [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))]; };
+  const asBytes = async blob => new Uint8Array(await blob.arrayBuffer());
+
+  // ---------- IMAGE COMPRESS ----------
+  $("#go-imgcompress").addEventListener("click", () => run("imgcompress", async () => {
+    const q = +$("#img-quality").value / 100, max = +$("#img-max").value, out = $('input[name="img-out"]:checked').value;
+    const list = state.imgcompress, outputs = [];
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      setStatus("imgcompress", "info", `Compressing ${item.name} (${i + 1} of ${list.length})…`, i / list.length);
+      await tick();
+      diag.image = { number: i + 1, of: list.length, format: item.format, dims: item.width + "x" + item.height };
+      // "Same format" keeps formats the browser can write; others (GIF, TIFF, HEIC…) become WebP
+      const target = out !== "keep" ? out : FMT[item.format].enc && item.format !== "bmp" ? item.format : "webp";
+      const original = { name: item.name, bytes: await asBytes(item.blob), mime: FMT[item.format].mime, before: item.size, kept: true };
+      if (item.format === "svg" && out === "keep") { outputs.push(original); continue; }
+      const [w, h] = fitInside(item.width, item.height, max);
+      const d = await decodeImage(item);
+      const r = await renderImage(d, w, h, target, q);
+      if (d.src.close) d.src.close();
+      if (r.blob.size >= item.size && target === item.format) { outputs.push(original); continue; }
+      outputs.push({ name: stripExt(item.name) + "_compressed." + FMT[target].ext, bytes: await asBytes(r.blob), mime: FMT[target].mime, before: item.size });
+    }
+    const before = outputs.reduce((s, o) => s + o.before, 0), after = outputs.reduce((s, o) => s + o.bytes.byteLength, 0);
+    const pct = Math.round((1 - after / before) * 100);
+    await finish("imgcompress", pct > 0 ? `Saved ${fmtSize(before - after)} (${pct}%)` : "These images are already compact", outputs, "compressed_images.zip");
+  }));
+
+  // ---------- IMAGE CONVERT ----------
+  function updateConvertHint() {
+    const t = $('input[name="target"]:checked').value;
+    $("#field-conv-quality").hidden = !["jpeg", "webp", "avif"].includes(t);
+    const list = state.convert;
+    const same = list.filter(x => x.format === t).length;
+    const notes = [];
+    if (t === "jpeg" || t === "bmp") notes.push("Transparent areas become white.");
+    if (list.some(x => x.format === "gif")) notes.push("Animated GIFs keep their first frame.");
+    if (same) notes.push(same + (same === 1 ? " image is" : " images are") + " already " + FMT[t].label + " and will be kept as is.");
+    $("#convert-hint").textContent = notes.join(" ");
+    $("#go-convert").textContent = "Convert to " + FMT[t].label;
+  }
+  document.querySelectorAll('input[name="target"]').forEach(r => r.addEventListener("change", updateConvertHint));
+
+  $("#go-convert").addEventListener("click", () => run("convert", async () => {
+    const target = $('input[name="target"]:checked').value, q = +$("#conv-quality").value / 100;
+    const list = state.convert, outputs = [];
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      setStatus("convert", "info", `Converting ${item.name} to ${FMT[target].label} (${i + 1} of ${list.length})…`, i / list.length);
+      await tick();
+      diag.image = { number: i + 1, of: list.length, format: item.format, dims: item.width + "x" + item.height };
+      const name = stripExt(item.name) + "." + FMT[target].ext;
+      if (item.format === target) {
+        outputs.push({ name, bytes: await asBytes(item.blob), mime: FMT[target].mime, label: "Already " + FMT[target].label + ", kept as is" });
+        continue;
+      }
+      const d = await decodeImage(item);
+      const r = await renderImage(d, item.width, item.height, target, q);
+      if (d.src.close) d.src.close();
+      outputs.push({ name, bytes: await asBytes(r.blob), mime: FMT[target].mime,
+        label: FMT[item.format].label + " → " + FMT[target].label + " · " + r.width + "×" + r.height + (r.shrunk ? " (reduced to fit this device)" : "") });
+    }
+    await finish("convert", outputs.length === 1 ? "Your image is ready" : outputs.length + " images converted to " + FMT[target].label, outputs, "converted_" + FMT[target].ext + ".zip");
+  }));
+
+  // AVIF output only where this browser can actually write it
+  (() => {
+    const c = document.createElement("canvas"); c.width = c.height = 1;
+    try { c.toBlob(b => { if (b && b.type === "image/avif") { FMT.avif.enc = true; $("#target-avif-wrap").hidden = false; } }, "image/avif"); } catch (_) {}
+  })();
+  [["img-quality", "img-quality-out"], ["conv-quality", "conv-quality-out"]].forEach(([i, o]) => $("#" + i).addEventListener("input", e => $("#" + o).textContent = e.target.value));
+
+  // ---------- wiring ----------
+  function showCategory(cat) {
+    document.querySelectorAll(".cat").forEach(c => c.setAttribute("aria-selected", String(c.dataset.cat === cat)));
+    document.querySelectorAll(".tab").forEach(t => t.hidden = t.dataset.cat !== cat);
+  }
+  function showTool(tool) {
+    const t = $("#tab-" + tool);
+    if (!t) return;
+    showCategory(t.dataset.cat);
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
+    document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== "panel-" + tool);
+    try { localStorage.setItem("pdfpress-tab", tool); localStorage.setItem("pdfpress-tab-" + t.dataset.cat, tool); } catch (_) {}
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTool(t.dataset.tool)));
+  document.querySelectorAll(".cat").forEach(c => c.addEventListener("click", () => {
+    let last = null;
+    try { last = localStorage.getItem("pdfpress-tab-" + c.dataset.cat); } catch (_) {}
+    showTool(last || $(`.tab[data-cat="${c.dataset.cat}"]`).dataset.tool);
+  }));
+  try { const last = localStorage.getItem("pdfpress-tab"); if (last) showTool(last); } catch (_) {}
+
+  Object.keys(state).forEach(tool => {
     const drop = $(`[data-drop="${tool}"]`);
     drop.dataset.title = drop.querySelector(".big").textContent;
     const icon = document.createElement("div");
@@ -894,13 +1298,13 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   // Let a PDF dropped anywhere on the page go to the active tool instead of opening in the browser
   document.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) e.preventDefault(); });
   document.addEventListener("drop", async e => {
-    if (!e.dataTransfer.files.length) return;
+    if (e.defaultPrevented || !e.dataTransfer.files.length) return; // a drop zone already took it
     e.preventDefault();
     const tool = $(".tab[aria-selected='true']").dataset.tool;
     addItems(tool, await readFiles(tool, e.dataTransfer.files));
   });
 
-  ["merge", "split", "compress"].forEach(render);
+  Object.keys(state).forEach(render);
 })();
 </script>
 
