@@ -139,11 +139,49 @@ button { font-family: var(--f-body); }
 .bar { height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; margin-top: 6px; max-width: 260px; }
 .bar i { display: block; height: 100%; background: var(--good); border-radius: 3px; }
 
-.status { font-size: 14px; padding: 10px 14px; border-radius: 10px; }
-.status.err { background: var(--bad-soft); color: var(--bad); }
-.status.info { background: var(--accent-soft); color: var(--fg); }
-.progress { height: 4px; background: var(--sunken); border-radius: 2px; overflow: hidden; margin-top: 8px; }
-.progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+/* progress + motion cues */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes stripes { to { background-position: 28px 0; } }
+@keyframes slide { 0% { left: -40%; } 100% { left: 100%; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes bob { 50% { transform: translateY(-5px); } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--accent-soft); } 50% { box-shadow: 0 0 0 10px var(--accent-soft); } }
+
+.job { border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; animation: rise .25s ease-out both; }
+.job.info { background: var(--accent-soft); }
+.job.err { background: var(--bad-soft); color: var(--bad); }
+.job-row { display: flex; align-items: center; gap: 12px; font-size: 14px; min-width: 0; }
+.job-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.job-pct { font-family: var(--f-mono); font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; }
+.spin { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+.err-ic { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--bad); color: var(--bad-soft); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.progress { position: relative; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background-color: var(--accent); background-image: linear-gradient(45deg, rgba(255,255,255,.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.28) 75%, transparent 75%); background-size: 28px 28px; animation: stripes .6s linear infinite; transition: width .3s ease-out; }
+.progress.indeterminate i { width: 40%; animation: slide 1.1s ease-in-out infinite, stripes .6s linear infinite; }
+
+.btn.busy { pointer-events: none; }
+.btn.busy::before { content: ""; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.35); border-top-color: var(--accent-ink); animation: spin .7s linear infinite; }
+.btn.primary.busy:disabled { opacity: .85; }
+
+.file.enter { animation: rise .3s ease-out both; }
+.results { animation: rise .35s ease-out both; }
+.done-ic { width: 30px; height: 30px; flex: none; animation: pop .4s ease-out both; }
+.done-ic circle { fill: var(--good); }
+.done-ic path { fill: none; stroke: var(--good-soft); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .35s .2s ease-out forwards; }
+.results-title { display: flex; align-items: center; gap: 10px; }
+.dl-note { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dl-note .spin { width: 14px; height: 14px; border-width: 2px; }
+.thumb:empty { background: linear-gradient(90deg, var(--sunken) 0%, var(--line) 50%, var(--sunken) 100%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+
+.drop-icon { color: var(--accent); }
+.drop:hover .drop-icon, .drop.over .drop-icon { animation: bob 1s ease-in-out infinite; }
+.drop.over { animation: pulse 1.2s ease-in-out infinite; }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow); transition: opacity .25s, transform .25s; pointer-events: none; z-index: 20; max-width: calc(100% - 32px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 footer { color: var(--muted); font-size: 13px; }
 footer p { margin: 0 0 4px; max-width: 70ch; }
@@ -155,7 +193,12 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   .thumb { width: 44px; height: 56px; }
   .btn.primary { width: 100%; justify-content: center; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .job, .results, .file.enter, .done-ic, .drop-icon, .drop.over, .thumb:empty, .progress i { animation: none !important; }
+  .done-ic path { stroke-dashoffset: 0; }
+  .progress.indeterminate i { width: 100%; opacity: .5; }
+}
 </style>
 
 <div class="wrap">
@@ -303,32 +346,62 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     return downloadsP;
   }
   getDownloads();
+  // Resolves "saved", "declined" or "error"
   async function saveFile(filename, bytes, mime, statusId) {
     const blob = new Blob([bytes], { type: mime });
     const dl = await getDownloads();
     if (dl) {
-      try { await dl.save({ filename, data: blob }); }
+      try { await dl.save({ filename, data: blob }); toast("Downloaded " + filename); return "saved"; }
       catch (e) {
-        if (e && e.code === "declined") return;
-        if (e && e.code === "rate_limited") return setStatus(statusId, "info", "A save prompt is already open. Finish that one first.");
+        if (e && e.code === "declined") return "declined";
+        if (e && e.code === "rate_limited") { toast("A save prompt is already open. Finish that one first."); return "error"; }
         setStatus(statusId, "err", "Couldn't save the file: " + (e && e.message || "saving isn't available here."));
+        return "error";
       }
-      return;
     }
     const url = URL.createObjectURL(blob);
     const a = el("a", { href: url, download: filename });
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 30000);
+    toast("Downloaded " + filename);
+    return "saved";
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    let t = $(".toast");
+    if (!t) { t = el("div", { class: "toast", role: "status" }); document.body.append(t); }
+    t.textContent = msg;
+    requestAnimationFrame(() => t.classList.add("show"));
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
   }
 
   // ---------- status ----------
+  // kind "info" shows a spinner and progress bar (pct null = indeterminate); updates in place so animations keep running
+  const tick = () => new Promise(r => setTimeout(r, 16));
   function setStatus(tool, kind, msg, pct) {
     const box = $("#status-" + tool);
-    box.replaceChildren();
-    if (!msg) return;
-    const s = el("div", { class: "status " + kind, text: msg });
-    if (pct != null) s.append(el("div", { class: "progress" }, el("i", { style: "width:" + Math.round(pct * 100) + "%" })));
-    box.append(s);
+    if (!msg) return box.replaceChildren();
+    let job = box.querySelector(".job");
+    if (!job || !job.classList.contains(kind)) {
+      job = el("div", { class: "job " + kind, role: kind === "err" ? "alert" : "status" }, [
+        el("div", { class: "job-row" }, [
+          el("span", kind === "err" ? { class: "err-ic", text: "!" } : { class: "spin" }),
+          el("span", { class: "job-text" }),
+          el("span", { class: "job-pct" }),
+        ]),
+        kind === "info" ? el("div", { class: "progress" }, el("i")) : null,
+      ]);
+      box.replaceChildren(job);
+    }
+    job.querySelector(".job-text").textContent = msg;
+    job.querySelector(".job-pct").textContent = pct != null ? Math.round(pct * 100) + "%" : "";
+    const bar = job.querySelector(".progress");
+    if (bar) {
+      bar.classList.toggle("indeterminate", pct == null);
+      bar.firstChild.style.width = pct == null ? "" : Math.max(4, Math.round(pct * 100)) + "%";
+    }
   }
 
   // ---------- loading PDFs ----------
@@ -402,6 +475,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
 
   function addItems(tool, items) {
     if (!items.length) return;
+    items.forEach(it => it.fresh = true);
     state[tool] = multi[tool] ? state[tool].concat(items) : [items[0]];
     $("#res-" + tool).replaceChildren();
     render(tool);
@@ -425,7 +499,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       if (i === list.length - 1) actions.children[1].disabled = true;
     }
     actions.append(el("button", { class: "iconbtn", "aria-label": "Remove " + item.name, title: "Remove", text: "✕", onclick: () => { list.splice(i, 1); $("#res-" + tool).replaceChildren(); render(tool); } }));
-    const li = el("li", { class: "file" }, [el("span", { class: "order", text: tool === "merge" ? String(i + 1) : "" }), thumb, meta, actions]);
+    const li = el("li", { class: "file" + (item.fresh ? " enter" : ""), style: item.fresh ? "animation-delay:" + Math.min(i, 6) * 60 + "ms" : "" }, [el("span", { class: "order", text: tool === "merge" ? String(i + 1) : "" }), thumb, meta, actions]);
     if (tool !== "merge") { li.classList.add("single"); li.firstChild.remove(); }
     if (tool === "merge") {
       li.draggable = true;
@@ -457,6 +531,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   function render(tool) {
     const list = state[tool];
     $("#list-" + tool).replaceChildren(...list.map((it, i) => fileRow(tool, it, i)));
+    list.forEach(it => it.fresh = false);
     const has = list.length > 0;
     $("#act-" + tool).hidden = !has;
     const opts = $("#opts-" + tool); if (opts) opts.hidden = !has;
@@ -472,17 +547,36 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   }
 
   // ---------- results ----------
+  async function makeZip(outputs) {
+    const zip = new JSZip();
+    const used = new Set();
+    for (const o of outputs) { let n = o.name, k = 2; while (used.has(n)) n = baseName(o.name) + "-" + k++ + ".pdf"; used.add(n); zip.file(n, o.bytes); }
+    return zip.generateAsync({ type: "uint8array" });
+  }
+  // Show the result card, then start the download straight away (a .zip when there are several files)
+  async function finish(tool, title, outputs, zipName) {
+    setStatus(tool, "info", "Finishing up…", 1);
+    await tick();
+    showResults(tool, title, outputs, zipName);
+    setStatus(tool, "", "");
+    const note = $("#res-" + tool + " .dl-note");
+    note.replaceChildren(el("span", { class: "spin" }), document.createTextNode("Starting your download…"));
+    const r = outputs.length === 1
+      ? await saveFile(outputs[0].name, outputs[0].bytes, "application/pdf", tool)
+      : await saveFile(zipName, await makeZip(outputs), "application/zip", tool);
+    note.textContent = r === "saved" ? "Download started automatically. Use the buttons below to save it again."
+      : r === "declined" ? "Download cancelled. Use the buttons below when you're ready."
+      : "The download didn't start automatically. Use the buttons below.";
+  }
   function showResults(tool, title, outputs, zipName) {
     const box = el("div", { class: "results" });
-    const head = el("div", { class: "results-head" }, el("h3", { text: title }));
+    const check = document.createElement("span");
+    check.innerHTML = '<svg class="done-ic" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15"/><path d="M9 15.5l4 4 8-8.5"/></svg>';
+    const head = el("div", { class: "results-head" }, el("div", { class: "results-title" }, [check.firstChild, el("h3", { text: title })]));
     if (outputs.length > 1) head.append(el("button", { class: "btn primary", text: "Download all (.zip)", onclick: async () => {
-      const zip = new JSZip();
-      const used = new Set();
-      for (const o of outputs) { let n = o.name, k = 2; while (used.has(n)) n = baseName(o.name) + "-" + k++ + ".pdf"; used.add(n); zip.file(n, o.bytes); }
-      const data = await zip.generateAsync({ type: "uint8array" });
-      saveFile(zipName, data, "application/zip", tool);
+      saveFile(zipName, await makeZip(outputs), "application/zip", tool);
     } }));
-    box.append(head);
+    box.append(head, el("div", { class: "dl-note" }));
     for (const o of outputs) {
       const sub = el("div", { class: "sub" });
       if (o.before != null) {
@@ -502,13 +596,19 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     $("#res-" + tool).replaceChildren(box);
   }
 
+  const BUSY = { merge: "Merging…", split: "Splitting…", compress: "Compressing…" };
   async function run(tool, fn) {
     const btn = $("#go-" + tool);
+    const label = btn.textContent;
     btn.disabled = true;
+    btn.classList.add("busy");
+    btn.textContent = BUSY[tool];
     $("#res-" + tool).replaceChildren();
+    setStatus(tool, "info", "Getting started…", 0);
+    await tick();
     try { await fn(); }
     catch (e) { console.error(e); setStatus(tool, "err", "Something went wrong: " + (e && e.message || e) + ". If the file is password protected, unlock it first."); }
-    finally { btn.disabled = false; render(tool); }
+    finally { btn.classList.remove("busy"); btn.textContent = label; btn.disabled = false; render(tool); }
   }
   const loadLib = bytes => PDFDocument.load(bytes, { ignoreEncryption: true });
 
@@ -517,14 +617,16 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const list = state.merge;
     const out = await PDFDocument.create();
     for (let i = 0; i < list.length; i++) {
-      setStatus("merge", "info", "Adding " + list[i].name + "…", i / list.length);
+      setStatus("merge", "info", `Adding ${list[i].name} (${i + 1} of ${list.length})…`, i / (list.length + 1));
+      await tick();
       const src = await loadLib(list[i].bytes);
       const pages = await out.copyPages(src, src.getPageIndices());
       pages.forEach(p => out.addPage(p));
     }
+    setStatus("merge", "info", "Building merged.pdf…", list.length / (list.length + 1));
+    await tick();
     const bytes = await out.save({ useObjectStreams: true });
-    setStatus("merge", "", "");
-    showResults("merge", "Merged PDF ready", [{ name: "merged.pdf", bytes, pages: out.getPageCount() }]);
+    await finish("merge", "Merged PDF ready", [{ name: "merged.pdf", bytes, pages: out.getPageCount() }]);
   }));
 
   // ---------- SPLIT ----------
@@ -608,13 +710,13 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const outputs = [];
     for (let i = 0; i < sets.length; i++) {
       setStatus("split", "info", "Creating file " + (i + 1) + " of " + sets.length + "…", i / sets.length);
+      await tick();
       const doc = await PDFDocument.create();
       const pages = await doc.copyPages(src, sets[i].pages.map(p => p - 1));
       pages.forEach(p => doc.addPage(p));
       outputs.push({ name: `${base}_p${sets[i].label}.pdf`, bytes: await doc.save({ useObjectStreams: true }), pages: pages.length });
     }
-    setStatus("split", "", "");
-    showResults("split", outputs.length === 1 ? "Your PDF is ready" : outputs.length + " PDFs ready", outputs, base + "_split.zip");
+    await finish("split", outputs.length === 1 ? "Your PDF is ready" : outputs.length + " PDFs ready", outputs, base + "_split.zip");
   }));
 
   // ---------- COMPRESS ----------
@@ -653,10 +755,9 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       if (bytes.byteLength >= item.size) { bytes = new Uint8Array(item.bytes.slice(0)); kept = true; }
       outputs.push({ name: baseName(item.name) + "_compressed.pdf", bytes, before: item.size, kept });
     }
-    setStatus("compress", "", "");
     const before = outputs.reduce((s, o) => s + o.before, 0), after = outputs.reduce((s, o) => s + o.bytes.byteLength, 0);
     const pct = Math.round((1 - after / before) * 100);
-    showResults("compress", pct > 0 ? `Saved ${fmtSize(before - after)} (${pct}%)` : "These files are already compact", outputs, "compressed_pdfs.zip");
+    await finish("compress", pct > 0 ? `Saved ${fmtSize(before - after)} (${pct}%)` : "These files are already compact", outputs, "compressed_pdfs.zip");
   }));
 
   // ---------- wiring ----------
@@ -670,6 +771,10 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   ["merge", "split", "compress"].forEach(tool => {
     const drop = $(`[data-drop="${tool}"]`);
     drop.dataset.title = drop.querySelector(".big").textContent;
+    const icon = document.createElement("div");
+    icon.className = "drop-icon";
+    icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="M9.5 13.5 12 11l2.5 2.5"/></svg>';
+    drop.prepend(icon);
     const input = $("#in-" + tool);
     input.addEventListener("change", async () => { addItems(tool, await readFiles(tool, input.files)); input.value = ""; });
     drop.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); drop.classList.add("over"); } });
