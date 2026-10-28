@@ -157,6 +157,9 @@ button { font-family: var(--f-body); }
 .job-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .job-pct { font-family: var(--f-mono); font-weight: 500; color: var(--accent); font-variant-numeric: tabular-nums; }
 .spin { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+.job-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-left: 32px; }
+.err-id { font-family: var(--f-mono); font-size: 12.5px; }
+.err-details { width: 100%; font: 12px var(--f-mono); background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
 .err-ic { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--bad); color: var(--bad-soft); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
 .progress { position: relative; height: 8px; background: var(--surface); border-radius: 4px; overflow: hidden; }
 .progress i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 4px; background-color: var(--accent); background-image: linear-gradient(45deg, rgba(255,255,255,.28) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.28) 75%, transparent 75%); background-size: 28px 28px; animation: stripes .6s linear infinite; transition: width .3s ease-out; }
@@ -311,6 +314,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   <footer>
     <p>Everything runs on your device using pdf-lib and PDF.js. Nothing is uploaded.</p>
     <p>Password-protected PDFs need to be unlocked before they can be processed.</p>
+    <p>If something goes wrong, you can download an error report to send in. It includes your browser type, device memory, file sizes and page counts, never your files or their names.</p>
   </footer>
 </div>
 
@@ -339,6 +343,49 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   const baseName = n => n.replace(/\.pdf$/i, "");
   let uid = 0;
 
+  // ---------- error log ----------
+  // Each error becomes a JSON report: kept in this browser (last 20), downloadable as a .json file,
+  // and POSTed as JSON to LOG_ENDPOINT once one is set. Reports never include file contents or file names.
+  const LOG_ENDPOINT = "";
+  const APP_VERSION = "2026-10-28.4";
+  let diag = {};
+  const fileFacts = list => list.map(x => ({ sizeMB: +(x.size / 1048576).toFixed(2), pages: x.pages, sample: x.sample }));
+  function logError(tool, step, err, extra = {}) {
+    // Status messages mention file names; swap them out so reports stay anonymous
+    step = String(step || "");
+    for (const list of Object.values(state)) for (const it of list) step = step.split(it.name).join("[file]");
+    const entry = {
+      id: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      time: new Date().toISOString(),
+      version: APP_VERSION,
+      tool, step,
+      error: { name: err && err.name, message: String(err && err.message || err), stack: String(err && err.stack || "").slice(0, 2000) },
+      details: { ...diag, ...extra },
+      env: {
+        host: location.hostname,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        deviceMemoryGB: navigator.deviceMemory ?? null,
+        cpuCores: navigator.hardwareConcurrency ?? null,
+        screen: screen.width + "x" + screen.height + "@" + devicePixelRatio,
+        viewport: innerWidth + "x" + innerHeight,
+        jsHeapMB: performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) + "/" + Math.round(performance.memory.jsHeapSizeLimit / 1048576) : null,
+      },
+    };
+    console.error("[PDF Press error " + entry.id + "]", entry, err);
+    try {
+      const saved = JSON.parse(localStorage.getItem("pdfpress-errors") || "[]");
+      saved.push(entry);
+      localStorage.setItem("pdfpress-errors", JSON.stringify(saved.slice(-20)));
+    } catch (_) {}
+    if (LOG_ENDPOINT) {
+      try { fetch(LOG_ENDPOINT, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain" }, body: JSON.stringify(entry) }).catch(() => {}); } catch (_) {}
+    }
+    return entry;
+  }
+  window.addEventListener("error", e => logError("page", "uncaught error", e.error || e.message, { source: e.filename + ":" + e.lineno }));
+  window.addEventListener("unhandledrejection", e => logError("page", "unhandled promise", e.reason));
+
   // ---------- saving files ----------
   let downloadsP = null;
   function getDownloads() {
@@ -355,7 +402,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       catch (e) {
         if (e && e.code === "declined") return "declined";
         if (e && e.code === "rate_limited") { toast("A save prompt is already open. Finish that one first."); return "error"; }
-        setStatus(statusId, "err", "Couldn't save the file: " + (e && e.message || "saving isn't available here."));
+        setStatus(statusId, "err", "Couldn't save the file. Saving may not be available here.", null, logError(statusId, "saving " + mime, e, { sizeMB: +(blob.size / 1048576).toFixed(2) }));
         return "error";
       }
     }
@@ -380,9 +427,33 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   // ---------- status ----------
   // kind "info" shows a spinner and progress bar (pct null = indeterminate); updates in place so animations keep running
   const tick = () => new Promise(r => setTimeout(r, 16));
-  function setStatus(tool, kind, msg, pct) {
+  const lastStep = {};
+  function setStatus(tool, kind, msg, pct, report) {
     const box = $("#status-" + tool);
     if (!msg) return box.replaceChildren();
+    if (kind === "info") lastStep[tool] = msg;
+    if (report) {
+      const details = JSON.stringify(report, null, 2);
+      const copy = el("button", { class: "btn small", text: "Copy error details", onclick: async () => {
+        try { await navigator.clipboard.writeText(details); copy.textContent = "Copied"; }
+        catch (_) {
+          const ta = el("textarea", { class: "err-details", readonly: "", rows: "6" });
+          ta.value = details; copy.replaceWith(ta); ta.focus(); ta.select();
+        }
+      } });
+      const job = el("div", { class: "job err", role: "alert" }, [
+        el("div", { class: "job-row" }, [el("span", { class: "err-ic", text: "!" }), el("span", { class: "job-text", text: msg })]),
+        el("div", { class: "job-actions" }, [
+          el("span", { class: "err-id", text: "Error ID " + report.id + (LOG_ENDPOINT ? " · reported automatically" : "") }),
+          el("div", { class: "row-actions" }, [copy, el("button", { class: "btn small", text: "Download error log (.json)", onclick: () => {
+            let all = [report];
+            try { all = JSON.parse(localStorage.getItem("pdfpress-errors") || "[]"); if (!all.some(r => r.id === report.id)) all.push(report); } catch (_) {}
+            saveFile("pdf-press-errors-" + report.id + ".json", JSON.stringify(all, null, 2), "application/json", tool);
+          } })]),
+        ]),
+      ]);
+      return box.replaceChildren(job);
+    }
     let job = box.querySelector(".job");
     if (!job || !job.classList.contains(kind)) {
       job = el("div", { class: "job " + kind, role: kind === "err" ? "alert" : "status" }, [
@@ -429,7 +500,11 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const failed = [];
     for (const f of files) {
       try { out.push(await loadPdf(f.name, await f.arrayBuffer())); }
-      catch (e) { failed.push(f.name + (e && e.name === "PasswordException" ? " (password protected)" : " (couldn't be read)")); }
+      catch (e) {
+        const locked = e && e.name === "PasswordException";
+        failed.push(f.name + (locked ? " (password protected)" : " (couldn't be read)"));
+        if (!locked) logError(tool, "reading file", e, { file: { sizeMB: +(f.size / 1048576).toFixed(2), type: f.type } });
+      }
     }
     setStatus(tool, failed.length ? "err" : "", failed.length ? "Skipped: " + failed.join(", ") : "");
     return out;
@@ -604,10 +679,16 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     btn.classList.add("busy");
     btn.textContent = BUSY[tool];
     $("#res-" + tool).replaceChildren();
+    diag = {};
     setStatus(tool, "info", "Getting started…", 0);
     await tick();
     try { await fn(); }
-    catch (e) { console.error(e); setStatus(tool, "err", "Something went wrong: " + (e && e.message || e) + ". If the file is password protected, unlock it first."); }
+    catch (e) {
+      const options = tool === "compress" ? { level: $('input[name="level"]:checked').value }
+        : tool === "split" ? { mode: $('input[name="split-mode"]:checked').value, ranges: $("#split-ranges").value, every: $("#split-n").value, join: $("#split-join").checked } : {};
+      const report = logError(tool, lastStep[tool], e, { files: fileFacts(state[tool]), options });
+      setStatus(tool, "err", e.userMessage || "Something went wrong while processing. If the file is password protected, unlock it first. Otherwise, send the error details below so it can be fixed.", null, report);
+    }
     finally { btn.classList.remove("busy"); btn.textContent = label; btn.disabled = false; render(tool); }
   }
   const loadLib = bytes => PDFDocument.load(bytes, { ignoreEncryption: true });
@@ -721,20 +802,42 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
 
   // ---------- COMPRESS ----------
   const LEVELS = { less: { dpi: 150, q: 0.8 }, medium: { dpi: 110, q: 0.62 }, high: { dpi: 72, q: 0.42 } };
+  // Browsers refuse canvases past a size/memory limit (much lower on phones), and toBlob then returns null.
+  // Stay under a safe pixel budget, and if a render still fails, retry smaller before giving up.
+  const MAX_PIXELS = 16e6, MAX_SIDE = 8192;
+  async function renderPageJpeg(page, scale, q) {
+    for (let attempt = 1; attempt <= 4; attempt++, scale *= 0.6) {
+      const vp = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
+      diag.page = { ...diag.page, attempt, scale: +scale.toFixed(3), canvas: canvas.width + "x" + canvas.height };
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        try {
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvasContext: ctx, viewport: vp }).promise;
+          const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+          canvas.width = canvas.height = 0;
+          if (blob && blob.size) return blob;
+          diag.page.lastFailure = "toBlob returned " + (blob ? "an empty image" : "null");
+        } catch (e) { diag.page.lastFailure = "render: " + (e && e.message || e); }
+      } else diag.page.lastFailure = "getContext returned null";
+      canvas.width = canvas.height = 0;
+    }
+    const err = new Error("Page could not be converted to an image after 4 attempts (" + diag.page.lastFailure + ")");
+    err.userMessage = `Page ${diag.page.number} is too large for this browser to compress. Try High compression, or use a computer with more memory.`;
+    throw err;
+  }
   async function compressOne(item, level, onPage) {
     const { dpi, q } = LEVELS[level];
     const out = await PDFDocument.create();
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
     for (let p = 1; p <= item.pages; p++) {
       onPage(p);
       const page = await item.pdf.getPage(p);
       const vp1 = page.getViewport({ scale: 1 });
-      const vp = page.getViewport({ scale: dpi / 72 });
-      canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
-      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      await page.render({ canvasContext: ctx, viewport: vp }).promise;
-      const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+      const scale = Math.min(dpi / 72, Math.sqrt(MAX_PIXELS / (vp1.width * vp1.height)), MAX_SIDE / vp1.width, MAX_SIDE / vp1.height);
+      diag.page = { number: p, of: item.pages, sizePt: Math.round(vp1.width) + "x" + Math.round(vp1.height), level };
+      const blob = await renderPageJpeg(page, scale, q);
       const jpg = await out.embedJpg(await blob.arrayBuffer());
       const np = out.addPage([vp1.width, vp1.height]);
       np.drawImage(jpg, { x: 0, y: 0, width: vp1.width, height: vp1.height });
@@ -784,7 +887,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       e.target.disabled = true;
       setStatus(tool, "info", "Making sample files…");
       try { const items = await samples[tool](); setStatus(tool, "", ""); addItems(tool, items); }
-      catch (err) { setStatus(tool, "err", "Couldn't create the samples: " + err.message); }
+      catch (err) { setStatus(tool, "err", "Couldn't create the samples.", null, logError(tool, "making samples", err)); }
       finally { e.target.disabled = false; }
     });
   });
