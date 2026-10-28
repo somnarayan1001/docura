@@ -283,6 +283,22 @@ button { font-family: var(--f-body); }
 .results-title { display: flex; align-items: center; gap: 10px; }
 .dl-note { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .dl-note .spin { width: 14px; height: 14px; border-width: 2px; }
+.dl-note { flex-wrap: wrap; }
+.cd-ring { width: 22px; height: 22px; flex: none; transform: rotate(-90deg); }
+.cd-ring circle { fill: none; stroke-width: 3; }
+.cd-ring .track { stroke: var(--line-strong); }
+.cd-ring .bar { stroke: var(--accent); stroke-linecap: round; stroke-dasharray: 56.55; stroke-dashoffset: 0; animation: countdown linear forwards; }
+@keyframes countdown { to { stroke-dashoffset: 56.55; } }
+.cd-num { color: var(--fg); font-variant-numeric: tabular-nums; }
+
+/* continue with another PDF tool */
+.pipe { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(135deg, var(--accent-soft), transparent 80%); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); animation: rise .35s .1s ease-out both; }
+.pipe .lbl { font-family: var(--f-display); font-weight: 600; font-size: 15px; margin-right: 4px; }
+.pipe-btn { appearance: none; display: inline-flex; align-items: center; gap: 10px; padding: 7px 14px 7px 7px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--fg); font: 600 14px var(--f-body); cursor: pointer; transition: border-color .15s, transform .15s; }
+.pipe-btn .ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--tone-soft); color: var(--tone); }
+.pipe-btn .pipe-arrow { color: var(--muted); transition: transform .15s; }
+.pipe-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+.pipe-btn:hover .pipe-arrow { transform: translateX(2px); color: var(--fg); }
 .thumb:empty { background: linear-gradient(90deg, var(--sunken) 0%, var(--line) 50%, var(--sunken) 100%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
 
 .drop:hover .drop-icon, .drop.over .drop-icon { animation: bob 1s ease-in-out infinite; }
@@ -326,7 +342,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  .job, .results, .file.enter, .done-ic, .drop-icon, .drop.over, .thumb:empty, .progress i, .art .float-a, .art .float-b, .est-total { animation: none !important; }
+  .job, .results, .file.enter, .done-ic, .drop-icon, .drop.over, .thumb:empty, .progress i, .art .float-a, .art .float-b, .est-total, .pipe, .cd-ring .bar { animation: none !important; }
   .done-ic path { stroke-dashoffset: 0; }
   .progress.indeterminate i { width: 100%; opacity: .5; }
 }
@@ -900,7 +916,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     const list = state[tool];
     const thumb = el("div", { class: "thumb" }, item.thumb ? cloneCanvas(item.thumb) : null);
     const meta = el("div", { class: "meta" }, [
-      el("div", { class: "name", title: item.name }, [document.createTextNode(item.name), item.sample ? el("span", { class: "tag", text: "Sample" }) : null]),
+      el("div", { class: "name", title: item.name }, [document.createTextNode(item.name), item.sample ? el("span", { class: "tag", text: "Sample" }) : item.piped ? el("span", { class: "tag", text: "From last step" }) : null]),
       item.format ? imageSub(item) : el("div", { class: "sub", text: item.pages + (item.pages === 1 ? " page" : " pages") + " · " + fmtSize(item.size) }),
       estimators[tool] ? el("div", { class: "est", "data-id": String(item.id) }) : null,
     ]);
@@ -981,6 +997,11 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     showResults(tool, title, outputs, zipName);
     setStatus(tool, "", "");
     const note = $("#res-" + tool + " .dl-note");
+    // PDF results can be passed to another PDF tool, so give 5 seconds to pick one before downloading
+    if (IMG_TOOLS.includes(tool)) deliver(tool, outputs, zipName, note);
+    else startCountdown(tool, outputs, zipName, note);
+  }
+  async function deliver(tool, outputs, zipName, note) {
     note.replaceChildren(el("span", { class: "spin" }), document.createTextNode("Starting your download…"));
     const r = outputs.length === 1
       ? await saveFile(outputs[0].name, outputs[0].bytes, outputs[0].mime || "application/pdf", tool)
@@ -989,15 +1010,85 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       : r === "declined" ? "Download cancelled. Use the buttons below when you're ready."
       : "The download didn't start automatically. Use the buttons below.";
   }
+
+  const AUTO_DOWNLOAD_SECONDS = 5;
+  const pendingDl = {}; // tool → { timer, note } while a countdown is running
+  function cancelAutoDownload(tool, message) {
+    const p = pendingDl[tool];
+    if (!p) return;
+    clearInterval(p.timer);
+    delete pendingDl[tool];
+    if (message) p.note.textContent = message;
+  }
+  function startCountdown(tool, outputs, zipName, note) {
+    cancelAutoDownload(tool);
+    let left = AUTO_DOWNLOAD_SECONDS;
+    const num = el("b", { class: "cd-num", text: String(left) });
+    const ring = document.createElement("span");
+    ring.innerHTML = '<svg class="cd-ring" viewBox="0 0 24 24" aria-hidden="true"><circle class="track" cx="12" cy="12" r="9"/><circle class="bar" cx="12" cy="12" r="9" style="animation-duration:' + AUTO_DOWNLOAD_SECONDS + 's"/></svg>';
+    const go = () => { cancelAutoDownload(tool); deliver(tool, outputs, zipName, note); };
+    note.replaceChildren(ring.firstChild, el("span", {}, [document.createTextNode("Download starts in "), num, document.createTextNode("s. Choose a next step below to skip it.")]),
+      el("button", { class: "btn small", type: "button", text: "Download now", onclick: go }));
+    pendingDl[tool] = { note, timer: setInterval(() => { left--; num.textContent = String(left); if (left <= 0) go(); }, 1000) };
+  }
+
+  // ---------- passing results to another PDF tool ----------
+  const PDF_TOOLS = ["merge", "split", "compress"];
+  function pipeRow(tool, outputs) {
+    const n = outputs.length;
+    const label = {
+      merge: n > 1 ? `Merge these ${n} PDFs` : "Merge with more PDFs",
+      split: "Split PDF",
+      compress: n > 1 ? `Compress all ${n} PDFs` : "Compress PDF",
+    };
+    // Split works on one file at a time
+    const targets = PDF_TOOLS.filter(t => t !== tool && (t !== "split" || n === 1));
+    const row = el("div", { class: "pipe" }, el("span", { class: "lbl", text: "Continue with" }));
+    for (const t of targets) {
+      const tab = $("#tab-" + t);
+      const tone = [...tab.classList].find(c => c.startsWith("tone-"));
+      const ic = el("span", { class: "ic" }, tab.querySelector(".ic svg").cloneNode(true));
+      ic.firstChild.setAttribute("width", "18"); ic.firstChild.setAttribute("height", "18");
+      row.append(el("button", { class: "pipe-btn " + tone, type: "button", onclick: () => pipeTo(tool, t, outputs) }, [ic, document.createTextNode(label[t]),
+        el("span", { class: "pipe-arrow", text: "→", "aria-hidden": "true" })]));
+    }
+    return row;
+  }
+  async function pipeTo(from, target, outputs) {
+    cancelAutoDownload(from, "Download skipped because you continued to another step. You can still download below.");
+    cancelEstimate(target);
+    state[target] = [];
+    $("#res-" + target).replaceChildren();
+    showTool(target);
+    $("#panel-" + target).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    setStatus(target, "info", "Bringing in your " + (outputs.length > 1 ? outputs.length + " files" : "file") + "…");
+    await tick();
+    try {
+      const items = [];
+      for (const o of outputs) {
+        const buf = o.bytes.buffer.slice(o.bytes.byteOffset, o.bytes.byteOffset + o.bytes.byteLength);
+        const item = await loadPdf(o.name, buf);
+        item.piped = true;
+        items.push(item);
+      }
+      setStatus(target, "", "");
+      addItems(target, items);
+      toast("Moved to " + $("#tab-" + target + " b").textContent);
+    } catch (e) {
+      setStatus(target, "err", "Couldn't bring the file into this step.", null, logError(target, "piping from " + from, e, { files: outputs.map(o => ({ sizeMB: +(o.bytes.byteLength / 1048576).toFixed(2) })) }));
+    }
+  }
   function showResults(tool, title, outputs, zipName) {
     const box = el("div", { class: "results" });
     const check = document.createElement("span");
     check.innerHTML = '<svg class="done-ic" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15"/><path d="M9 15.5l4 4 8-8.5"/></svg>';
     const head = el("div", { class: "results-head" }, el("div", { class: "results-title" }, [check.firstChild, el("h3", { text: title })]));
     if (outputs.length > 1) head.append(el("button", { class: "btn primary", text: "Download all (.zip)", onclick: async () => {
+      cancelAutoDownload(tool, "Use the buttons below to save it again.");
       saveFile(zipName, await makeZip(outputs), "application/zip", tool);
     } }));
     box.append(head, el("div", { class: "dl-note" }));
+    if (PDF_TOOLS.includes(tool)) box.append(pipeRow(tool, outputs));
     for (const o of outputs) {
       const sub = el("div", { class: "sub" });
       if (o.before != null) {
@@ -1014,7 +1105,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
         const pct = Math.max(0, 1 - o.bytes.byteLength / o.before);
         meta.append(el("div", { class: "bar" }, el("i", { style: "width:" + Math.round((1 - pct) * 100) + "%" })));
       }
-      box.append(el("div", { class: "out" }, [meta, el("button", { class: "btn" + (outputs.length === 1 ? " primary" : ""), text: "Download", onclick: () => saveFile(o.name, o.bytes, o.mime || "application/pdf", tool) })]));
+      box.append(el("div", { class: "out" }, [meta, el("button", { class: "btn" + (outputs.length === 1 ? " primary" : ""), text: "Download", onclick: () => { cancelAutoDownload(tool, "Use the buttons below to save it again."); saveFile(o.name, o.bytes, o.mime || "application/pdf", tool); } })]));
     }
     $("#res-" + tool).replaceChildren(box);
   }
@@ -1026,6 +1117,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     btn.disabled = true;
     btn.classList.add("busy");
     btn.textContent = BUSY[tool];
+    cancelAutoDownload(tool);
     $("#res-" + tool).replaceChildren();
     cancelEstimate(tool);
     diag = {};
