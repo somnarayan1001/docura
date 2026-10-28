@@ -130,6 +130,17 @@ button { font-family: var(--f-body); }
 .fmt { font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .04em; background: var(--sunken); color: var(--fg); padding: 1px 6px; border-radius: 4px; }
 .fmt.warn { background: var(--bad-soft); color: var(--bad); }
 
+/* output size estimates */
+.est { display: flex; align-items: center; flex-wrap: wrap; gap: 0 6px; margin-top: 3px; font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); }
+.est b { color: var(--fg); font-weight: 500; }
+.est .spin, .est-total .spin { width: 12px; height: 12px; border-width: 2px; }
+.smaller { color: var(--good); font-weight: 500; }
+.est-total { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; padding: 12px 16px; border-radius: 12px; background: var(--sunken); font-size: 14px; animation: rise .25s ease-out both; }
+.est-total .spin { align-self: center; }
+.est-total b { font-family: var(--f-display); font-weight: 600; font-size: 22px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.est-total .lbl { color: var(--muted); }
+.lvl-est { display: block; margin-top: 6px; font-family: var(--f-mono); font-size: 12.5px; font-style: normal; font-weight: 500; color: var(--accent); min-height: 1.2em; }
+
 .action { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .action .note { color: var(--muted); font-size: 13px; }
 
@@ -320,10 +331,11 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     <div class="opts" id="opts-compress" hidden>
       <h3>Compression level</h3>
       <div class="choices" role="radiogroup" aria-label="Compression level">
-        <label class="choice"><input type="radio" name="level" id="level-less" value="less"><b>Less compression</b><span>High quality, less compression. 150 DPI.</span></label>
-        <label class="choice"><input type="radio" name="level" id="level-medium" value="medium" checked><b>Medium compression <span class="tag">Recommended</span></b><span>Good quality, good compression. 110 DPI.</span></label>
-        <label class="choice"><input type="radio" name="level" id="level-high" value="high"><b>High compression</b><span>Lower quality, smallest file. 72 DPI.</span></label>
+        <label class="choice"><input type="radio" name="level" id="level-less" value="less"><b>Less compression</b><span>High quality, less compression. 150 DPI.</span><em class="lvl-est" id="est-less"></em></label>
+        <label class="choice"><input type="radio" name="level" id="level-medium" value="medium" checked><b>Medium compression <span class="tag">Recommended</span></b><span>Good quality, good compression. 110 DPI.</span><em class="lvl-est" id="est-medium"></em></label>
+        <label class="choice"><input type="radio" name="level" id="level-high" value="high"><b>High compression</b><span>Lower quality, smallest file. 72 DPI.</span><em class="lvl-est" id="est-high"></em></label>
       </div>
+      <div class="est-total" id="est-total-compress" role="status" hidden></div>
       <span class="hint" style="color:var(--muted);font-size:13px">Each page is saved as an image, so text can no longer be selected or searched. If a file would get bigger, the original is kept.</span>
     </div>
     <div class="action" id="act-compress" hidden>
@@ -375,6 +387,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
           <label class="choice"><input type="radio" name="img-out" id="img-out-jpeg" value="jpeg"><b>JPG</b><span>Opens everywhere, no transparency</span></label>
         </div>
       </div>
+      <div class="est-total" id="est-total-imgcompress" role="status" hidden></div>
     </div>
     <div class="action" id="act-imgcompress" hidden>
       <button class="btn primary" id="go-imgcompress">Compress images</button>
@@ -409,6 +422,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
         <label for="conv-quality">Quality</label>
         <div class="range-row"><input type="range" id="conv-quality" min="10" max="100" value="92"><output id="conv-quality-out" for="conv-quality">92</output></div>
       </div>
+      <div class="est-total" id="est-total-convert" role="status" hidden></div>
       <span class="hint" id="convert-hint" style="color:var(--muted);font-size:13px"></span>
     </div>
     <div class="action" id="act-convert" hidden>
@@ -680,6 +694,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const meta = el("div", { class: "meta" }, [
       el("div", { class: "name", title: item.name }, [document.createTextNode(item.name), item.sample ? el("span", { class: "tag", text: "Sample" }) : null]),
       item.format ? imageSub(item) : el("div", { class: "sub", text: item.pages + (item.pages === 1 ? " page" : " pages") + " · " + fmtSize(item.size) }),
+      estimators[tool] ? el("div", { class: "est", "data-id": String(item.id) }) : null,
     ]);
     const actions = el("div", { class: "row-actions" });
     if (tool === "merge") {
@@ -729,18 +744,14 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const opts = $("#opts-" + tool); if (opts) opts.hidden = !has;
     const drop = $(`[data-drop="${tool}"]`);
     drop.querySelector(".big").textContent = has && tool !== "split" ? (drop.dataset.more || "Add more PDFs") : has ? "Choose a different PDF" : drop.dataset.title;
-    if (IMG_TOOLS.includes(tool)) {
-      const formats = [...new Set(list.map(x => FMT[x.format].label))].join(", ");
-      $("#note-" + tool).textContent = list.length + (list.length === 1 ? " image · " : " images · ") + fmtSize(list.reduce((s, x) => s + x.size, 0)) + (formats ? " · " + formats : "");
-      if (tool === "convert") updateConvertHint();
-    }
+    if (tool === "convert") updateConvertHint();
     if (tool === "merge") {
       const pages = list.reduce((s, x) => s + x.pages, 0);
       $("#go-merge").disabled = list.length < 2;
-      $("#note-merge").textContent = list.length < 2 ? "Add at least two PDFs." : list.length + " files · " + pages + " pages total. Drag rows or use the arrows to reorder.";
+      $("#note-merge").textContent = list.length < 2 ? "Add at least two PDFs." : list.length + " files · " + pages + " pages · merged file about " + fmtSize(list.reduce((s, x) => s + x.size, 0)) + ". Drag rows or use the arrows to reorder.";
     }
     if (tool === "split") renderSplitPreview();
-    if (tool === "compress") $("#note-compress").textContent = list.length + (list.length === 1 ? " file · " : " files · ") + fmtSize(list.reduce((s, x) => s + x.size, 0));
+    if (estimators[tool]) { paintEstimates(tool); scheduleEstimate(tool, 150); }
   }
 
   // ---------- results ----------
@@ -808,6 +819,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     btn.classList.add("busy");
     btn.textContent = BUSY[tool];
     $("#res-" + tool).replaceChildren();
+    cancelEstimate(tool);
     diag = {};
     setStatus(tool, "info", "Getting started…", 0);
     await tick();
@@ -886,7 +898,12 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
     const join = mode === "ranges" && $("#split-join").checked;
     if (mode === "every") $("#split-n-hint").textContent = "Makes " + groups.length + (groups.length === 1 ? " file." : " files.");
     $("#go-split").disabled = !!err;
-    $("#note-split").textContent = err ? "Fix the page ranges to continue." : join ? "Creates 1 PDF with " + groups.reduce((s, g) => s + g.pages.length, 0) + " pages." : "Creates " + groups.length + (groups.length === 1 ? " PDF." : " PDFs.");
+    // Rough sizes: each part's share of the pages, applied to the original size
+    const approx = n => fmtSize(Math.round(item.size * n / item.pages));
+    const sizes = groups.map(g => approx(g.pages.length));
+    $("#note-split").textContent = err ? "Fix the page ranges to continue."
+      : join ? "Creates 1 PDF with " + groups.reduce((s, g) => s + g.pages.length, 0) + " pages, about " + approx(groups.reduce((s, g) => s + g.pages.length, 0)) + "."
+      : "Creates " + groups.length + (groups.length === 1 ? " PDF" : " PDFs") + ", about " + (groups.length <= 5 ? sizes.join(", ") : approx(item.pages / groups.length) + " each") + ".";
     const where = new Map();
     groups.forEach((g, gi) => g.pages.forEach(p => { if (!where.has(p)) where.set(p, gi + 1); }));
 
@@ -1090,16 +1107,17 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
 
   // Draw at w×h and encode; on devices that refuse a canvas this big, retry smaller
   const IMG_MAX_PIXELS = 50e6;
-  async function renderImage(decoded, w, h, target, quality) {
+  // `dg` receives diagnostics; background estimates pass their own object so they don't disturb a running job's report
+  async function renderImage(decoded, w, h, target, quality, dg = diag) {
     const fit = Math.min(1, Math.sqrt(IMG_MAX_PIXELS / (w * h)), MAX_SIDE * 2 / Math.max(w, h));
     let scale = fit;
     for (let attempt = 1; attempt <= 4; attempt++, scale *= 0.7) {
       const cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
-      diag.image = { ...diag.image, attempt, canvas: cw + "x" + ch, target };
+      dg.image = { ...dg.image, attempt, canvas: cw + "x" + ch, target };
       const canvas = document.createElement("canvas");
       canvas.width = cw; canvas.height = ch;
       const ctx = canvas.getContext("2d");
-      if (!ctx) { diag.image.lastFailure = "getContext returned null"; continue; }
+      if (!ctx) { dg.image.lastFailure = "getContext returned null"; continue; }
       try {
         // JPG and BMP have no transparency, so transparent areas become white
         if (target === "jpeg" || target === "bmp") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cw, ch); }
@@ -1111,11 +1129,11 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
           if (blob.type && blob.type !== FMT[target].mime) throw Object.assign(new Error("Browser wrote " + blob.type + " instead of " + FMT[target].mime), { userMessage: "This browser can't save " + FMT[target].label + " images. Pick another format." });
           return { blob, width: cw, height: ch, shrunk: scale < 1 };
         }
-        diag.image.lastFailure = "toBlob returned " + (blob ? "an empty image" : "null");
-      } catch (e) { if (e.userMessage) throw e; diag.image.lastFailure = "draw/encode: " + (e && e.message || e); }
+        dg.image.lastFailure = "toBlob returned " + (blob ? "an empty image" : "null");
+      } catch (e) { if (e.userMessage) throw e; dg.image.lastFailure = "draw/encode: " + (e && e.message || e); }
       canvas.width = canvas.height = 0;
     }
-    throw Object.assign(new Error("Image could not be encoded after 4 attempts (" + diag.image.lastFailure + ")"), { userMessage: "This image is too large for this browser to process. Try a smaller size, or use a computer with more memory." });
+    throw Object.assign(new Error("Image could not be encoded after 4 attempts (" + dg.image.lastFailure + ")"), { userMessage: "This image is too large for this browser to process. Try a smaller size, or use a computer with more memory." });
   }
 
   function imageSub(item) {
@@ -1186,24 +1204,56 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   const asBytes = async blob => new Uint8Array(await blob.arrayBuffer());
 
   // ---------- IMAGE COMPRESS ----------
+  // What a tool will do with one image under the current settings. `key` identifies the exact encode,
+  // so a size estimate made in the background can be reused when the user clicks the button.
+  function imagePlan(tool, item) {
+    let target, w = item.width, h = item.height, q;
+    if (tool === "imgcompress") {
+      const out = $('input[name="img-out"]:checked').value;
+      if (item.format === "svg" && out === "keep") return { keep: true, label: "vector, kept as is" };
+      // "Same format" keeps formats the browser can write; others (GIF, TIFF, HEIC…) become WebP
+      target = out !== "keep" ? out : FMT[item.format].enc && item.format !== "bmp" ? item.format : "webp";
+      [w, h] = fitInside(item.width, item.height, +$("#img-max").value);
+      q = +$("#img-quality").value / 100;
+    } else {
+      target = $('input[name="target"]:checked').value;
+      if (item.format === target) return { keep: true, label: "already " + FMT[target].label + ", kept as is" };
+      q = +$("#conv-quality").value / 100;
+    }
+    if (target === "png" || target === "bmp") q = undefined; // lossless: quality has no effect
+    return { target, w, h, q, key: [item.id, target, w, h, q].join("|") };
+  }
+  const encCache = new Map(); // item id → { key, r } (or { key, error }) for the latest encode of that image
+  const inflight = new Map(); // key → promise, so a click waits for a background encode instead of repeating it
+  async function encodePlanned(item, plan, dg) {
+    const hit = encCache.get(item.id);
+    if (hit && hit.key === plan.key && hit.r) return hit.r;
+    if (inflight.has(plan.key)) { try { return await inflight.get(plan.key); } catch (_) {} }
+    const p = (async () => {
+      const d = await decodeImage(item);
+      try {
+        const r = await renderImage(d, plan.w, plan.h, plan.target, plan.q, dg);
+        encCache.set(item.id, { key: plan.key, r });
+        return r;
+      } finally { if (d.src.close) d.src.close(); }
+    })();
+    inflight.set(plan.key, p);
+    try { return await p; } finally { inflight.delete(plan.key); }
+  }
+
   $("#go-imgcompress").addEventListener("click", () => run("imgcompress", async () => {
-    const q = +$("#img-quality").value / 100, max = +$("#img-max").value, out = $('input[name="img-out"]:checked').value;
     const list = state.imgcompress, outputs = [];
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
       setStatus("imgcompress", "info", `Compressing ${item.name} (${i + 1} of ${list.length})…`, i / list.length);
       await tick();
       diag.image = { number: i + 1, of: list.length, format: item.format, dims: item.width + "x" + item.height };
-      // "Same format" keeps formats the browser can write; others (GIF, TIFF, HEIC…) become WebP
-      const target = out !== "keep" ? out : FMT[item.format].enc && item.format !== "bmp" ? item.format : "webp";
+      const plan = imagePlan("imgcompress", item);
       const original = { name: item.name, bytes: await asBytes(item.blob), mime: FMT[item.format].mime, before: item.size, kept: true };
-      if (item.format === "svg" && out === "keep") { outputs.push(original); continue; }
-      const [w, h] = fitInside(item.width, item.height, max);
-      const d = await decodeImage(item);
-      const r = await renderImage(d, w, h, target, q);
-      if (d.src.close) d.src.close();
-      if (r.blob.size >= item.size && target === item.format) { outputs.push(original); continue; }
-      outputs.push({ name: stripExt(item.name) + "_compressed." + FMT[target].ext, bytes: await asBytes(r.blob), mime: FMT[target].mime, before: item.size });
+      if (plan.keep) { outputs.push(original); continue; }
+      const r = await encodePlanned(item, plan);
+      if (r.blob.size >= item.size && plan.target === item.format) { outputs.push(original); continue; }
+      outputs.push({ name: stripExt(item.name) + "_compressed." + FMT[plan.target].ext, bytes: await asBytes(r.blob), mime: FMT[plan.target].mime, before: item.size });
     }
     const before = outputs.reduce((s, o) => s + o.before, 0), after = outputs.reduce((s, o) => s + o.bytes.byteLength, 0);
     const pct = Math.round((1 - after / before) * 100);
@@ -1226,7 +1276,7 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
   document.querySelectorAll('input[name="target"]').forEach(r => r.addEventListener("change", updateConvertHint));
 
   $("#go-convert").addEventListener("click", () => run("convert", async () => {
-    const target = $('input[name="target"]:checked').value, q = +$("#conv-quality").value / 100;
+    const target = $('input[name="target"]:checked').value;
     const list = state.convert, outputs = [];
     for (let i = 0; i < list.length; i++) {
       const item = list[i];
@@ -1234,18 +1284,148 @@ footer p { margin: 0 0 4px; max-width: 70ch; }
       await tick();
       diag.image = { number: i + 1, of: list.length, format: item.format, dims: item.width + "x" + item.height };
       const name = stripExt(item.name) + "." + FMT[target].ext;
-      if (item.format === target) {
+      const plan = imagePlan("convert", item);
+      if (plan.keep) {
         outputs.push({ name, bytes: await asBytes(item.blob), mime: FMT[target].mime, label: "Already " + FMT[target].label + ", kept as is" });
         continue;
       }
-      const d = await decodeImage(item);
-      const r = await renderImage(d, item.width, item.height, target, q);
-      if (d.src.close) d.src.close();
+      const r = await encodePlanned(item, plan);
       outputs.push({ name, bytes: await asBytes(r.blob), mime: FMT[target].mime,
         label: FMT[item.format].label + " → " + FMT[target].label + " · " + r.width + "×" + r.height + (r.shrunk ? " (reduced to fit this device)" : "") });
     }
     await finish("convert", outputs.length === 1 ? "Your image is ready" : outputs.length + " images converted to " + FMT[target].label, outputs, "converted_" + FMT[target].ext + ".zip");
   }));
+
+  // ---------- OUTPUT SIZE ESTIMATES ----------
+  // Images: the real encode runs in the background, so sizes are exact and the click reuses them.
+  // PDF compress: a few sample pages are encoded at each level and scaled up to the page count.
+  const pdfEst = new Map(); // item id → { less, medium, high } bytes, or { error }
+  async function estimatePdf(item, alive) {
+    const sample = [...new Set([1, Math.ceil(item.pages / 2), item.pages])];
+    const sum = { less: 0, medium: 0, high: 0 };
+    for (const p of sample) {
+      if (!alive()) return null;
+      const page = await item.pdf.getPage(p);
+      const vp1 = page.getViewport({ scale: 1 });
+      const cap = Math.min(Math.sqrt(MAX_PIXELS / (vp1.width * vp1.height)), MAX_SIDE / vp1.width, MAX_SIDE / vp1.height);
+      // Render each level exactly as compressOne does, so the sample matches the real output
+      for (const lv of Object.keys(LEVELS)) {
+        if (!alive()) return null;
+        const vp = page.getViewport({ scale: Math.min(LEVELS[lv].dpi / 72, cap) });
+        const c = document.createElement("canvas");
+        c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+        const ctx = c.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+        const b = await new Promise(r => c.toBlob(r, "image/jpeg", LEVELS[lv].q));
+        c.width = c.height = 0;
+        if (!b) throw new Error("toBlob returned null");
+        sum[lv] += b.size;
+      }
+      page.cleanup();
+    }
+    // Compress keeps the original whenever the result would be bigger
+    const est = {};
+    for (const lv in sum) est[lv] = Math.min(item.size, Math.round(sum[lv] / sample.length * item.pages + 1500 + 250 * item.pages));
+    return est;
+  }
+  async function estimateImages(tool, alive) {
+    for (const item of [...state[tool]]) {
+      if (!alive()) return;
+      const plan = imagePlan(tool, item);
+      const hit = encCache.get(item.id);
+      if (plan.keep || (hit && hit.key === plan.key)) continue;
+      try { await encodePlanned(item, plan, {}); }
+      catch (e) { encCache.set(item.id, { key: plan.key, error: e.userMessage ? "this browser can't save " + FMT[plan.target].label : "too large to estimate" }); }
+      paintEstimates(tool);
+      await tick();
+    }
+  }
+  const estimators = {
+    compress: async alive => {
+      for (const item of [...state.compress]) {
+        if (!alive()) return;
+        if (pdfEst.has(item.id)) continue;
+        try { const e = await estimatePdf(item, alive); if (e) pdfEst.set(item.id, e); }
+        catch (_) { pdfEst.set(item.id, { error: "couldn't estimate" }); }
+        paintEstimates("compress");
+      }
+    },
+    imgcompress: alive => estimateImages("imgcompress", alive),
+    convert: alive => estimateImages("convert", alive),
+  };
+  const estGen = {}, estTimer = {};
+  function scheduleEstimate(tool, delay = 350) {
+    if (!estimators[tool]) return;
+    clearTimeout(estTimer[tool]);
+    estTimer[tool] = setTimeout(async () => {
+      const gen = estGen[tool] = (estGen[tool] || 0) + 1;
+      try { await estimators[tool](() => estGen[tool] === gen); } catch (e) { console.warn("Size estimate failed", e); }
+    }, delay);
+  }
+  function cancelEstimate(tool) { clearTimeout(estTimer[tool]); estGen[tool] = (estGen[tool] || 0) + 1; }
+
+  // → { bytes, approx?, label? } | { pending } | { error }
+  function estimateFor(tool, item) {
+    if (tool === "compress") {
+      const e = pdfEst.get(item.id);
+      if (!e) return { pending: true };
+      if (e.error) return { error: e.error };
+      const b = e[$('input[name="level"]:checked').value];
+      return { bytes: b, approx: true, label: b >= item.size ? "original kept" : null };
+    }
+    const plan = imagePlan(tool, item);
+    if (plan.keep) return { bytes: item.size, label: plan.label };
+    const hit = encCache.get(item.id);
+    if (!hit || hit.key !== plan.key) return { pending: true };
+    if (hit.error) return { error: hit.error };
+    const b = hit.r.blob.size;
+    if (tool === "imgcompress" && b >= item.size && plan.target === item.format) return { bytes: item.size, label: "original kept" };
+    return { bytes: b };
+  }
+  function sizeChange(from, to) {
+    const p = Math.round((1 - to / from) * 100);
+    return p > 0 ? el("span", { class: "smaller", text: p + "% smaller" }) : document.createTextNode(p < 0 ? -p + "% larger" : "same size");
+  }
+  function paintEstimates(tool) {
+    const list = state[tool];
+    let total = 0, pending = 0, unknown = 0, approx = false;
+    for (const item of list) {
+      const e = estimateFor(tool, item);
+      const box = $(`#list-${tool} .est[data-id="${item.id}"]`);
+      if (e.pending) { pending++; box?.replaceChildren(el("span", { class: "spin" }), document.createTextNode("Working out output size…")); continue; }
+      if (e.error) { unknown++; box?.replaceChildren(document.createTextNode("Output size unknown: " + e.error)); continue; }
+      total += e.bytes; approx = approx || !!e.approx;
+      box?.replaceChildren(document.createTextNode("→ " + (e.approx ? "about " : "")), el("b", { text: fmtSize(e.bytes) }), document.createTextNode(" · "), e.label ? document.createTextNode(e.label) : sizeChange(item.size, e.bytes));
+    }
+    const totalIn = list.reduce((s, x) => s + x.size, 0);
+    const noun = IMG_TOOLS.includes(tool) ? ["image", "images"] : ["file", "files"];
+    const formats = IMG_TOOLS.includes(tool) ? [...new Set(list.map(x => FMT[x.format].label))].join(", ") : "";
+    $("#note-" + tool).textContent = list.length + " " + noun[list.length === 1 ? 0 : 1] + " · " + fmtSize(totalIn) + (formats ? " · " + formats : "");
+    const tb = $("#est-total-" + tool);
+    if (tb) {
+      tb.hidden = !list.length;
+      if (pending) tb.replaceChildren(el("span", { class: "spin" }), el("span", { text: "Working out the output size…" }));
+      else if (unknown === list.length) tb.replaceChildren(el("span", { text: "Output size can't be estimated for these files." }));
+      else tb.replaceChildren(...[
+        el("span", { class: "lbl", text: "Expected output" }),
+        el("b", { text: (approx ? "≈ " : "") + fmtSize(total) }),
+        el("span", {}, [document.createTextNode("from " + fmtSize(totalIn) + " · "), sizeChange(totalIn, total)]),
+        unknown ? el("span", { class: "lbl", text: "(" + unknown + " not included)" }) : null].filter(Boolean));
+    }
+    if (tool === "compress") {
+      for (const lv of Object.keys(LEVELS)) {
+        const ests = list.map(x => pdfEst.get(x.id));
+        const tag = $("#est-" + lv);
+        tag.textContent = !list.length ? "" : ests.some(x => !x) ? "Estimating…" : ests.every(x => x.error) ? "" : "≈ " + fmtSize(ests.reduce((s, x, i) => s + (x.error ? list[i].size : x[lv]), 0)) + " total";
+      }
+    }
+  }
+  [["#img-quality", "input"], ["#img-max", "change"], ['input[name="img-out"]', "change"]].forEach(([sel, ev]) =>
+    document.querySelectorAll(sel).forEach(n => n.addEventListener(ev, () => { paintEstimates("imgcompress"); scheduleEstimate("imgcompress"); })));
+  [["#conv-quality", "input"], ['input[name="target"]', "change"]].forEach(([sel, ev]) =>
+    document.querySelectorAll(sel).forEach(n => n.addEventListener(ev, () => { paintEstimates("convert"); scheduleEstimate("convert"); })));
+  document.querySelectorAll('input[name="level"]').forEach(n => n.addEventListener("change", () => paintEstimates("compress")));
 
   // AVIF output only where this browser can actually write it
   (() => {
