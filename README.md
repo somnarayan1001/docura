@@ -1,6 +1,6 @@
-# PDF Press
+# Docura
 
-PDF and image tools that run in your browser. Files are processed on your device and never uploaded.
+Docura: PDF & image tools that run in your browser. Files are processed on your device and never uploaded.
 
 **Use it:** https://somnarayan1001.github.io/pdf-press/
 

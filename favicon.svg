@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="b" x1="8" y1="5" x2="56" y2="59" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#c3a8ff"/><stop offset=".5" stop-color="#8a72f8"/><stop offset="1" stop-color="#5b7cfa"/></linearGradient>
+    <linearGradient id="f" x1="38" y1="5" x2="56" y2="24" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ece6ff"/><stop offset="1" stop-color="#93a6ff"/></linearGradient>
+    <linearGradient id="c" x1="8" y1="58" x2="48" y2="24" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#21195e" stop-opacity=".9"/><stop offset="1" stop-color="#3a35a8" stop-opacity=".15"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#15173a"/>
+  <rect x=".75" y=".75" width="62.5" height="62.5" rx="14.25" fill="none" stroke="#4b4aa6" stroke-width="1.5"/>
+  <g transform="translate(11 10) scale(.66)">
+    <path fill="url(#b)" d="M15 5h23l18 18v17c0 10.5-8.5 19-19 19H15a7 7 0 0 1-7-7V12a7 7 0 0 1 7-7z"/>
+    <path fill="url(#c)" d="M8 47.5 41 23h15v4.5L18.5 59H15a7 7 0 0 1-7-7z"/>
+    <path fill="url(#f)" d="M38 5l18 18H45.5A7.5 7.5 0 0 1 38 15.5z"/>
+  </g>
+</svg>
