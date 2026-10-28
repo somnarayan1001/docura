@@ -2,7 +2,7 @@
 
 Docura: PDF & image tools that run in your browser. Files are processed on your device and never uploaded.
 
-**Use it:** https://somnarayan1001.github.io/pdf-press/
+**Use it:** https://somnarayan1001.github.io/docura/
 
 ## PDF tools
 - **Merge** – combine several PDFs and drag them into order
