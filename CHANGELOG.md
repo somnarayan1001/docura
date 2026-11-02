@@ -7,6 +7,7 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 **Not yet tested**
 - HEIC, TIFF and real AVIF files as input. No sample files were available.
 - A real phone (only a simulated 375 px Android screen so far), including iPhone Safari.
+- Compress to Exact Size with real photos and large PDFs. It was only tested with the generated sample files, and speed on big files is unknown.
 - The save confirmation on the claude.ai copy with a real file.
 - The original report: the 251 MB one-page PDF that failed on someone else's device. The fix was tested by forcing the failure, not on that file or device.
 - Image links on the claude.ai copy. Its security rules probably block fetching other websites, so the page points people to the public site. That message was only tested by imitating the failure.
@@ -22,6 +23,15 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 - Browser storage keys still use the old `pdfpress-` prefix for tabs and errors. Harmless, and renaming would lose saved choices.
 
 ## History
+
+### 2026-11-02: Compress to Exact Size
+- New "Compress to Exact Size" tool in both categories (`pdfsize` and `imgsize`). Pick a target, by typing it or with a preset button, and each file lands as close to it as possible without going over.
+- Images save as JPG or WebP. Quality drops first, down to 50%, then the pixel dimensions shrink. Sizes are found by real background encodes, which the button reuses.
+- PDFs turn pages into JPEGs. Sample pages pick the setting, then the real file is built and measured, with up to 4 tries. Files already under the target are kept unchanged, so their text stays selectable.
+- 1 KB counts as 1000 bytes here, so results also pass websites that count 1 KB as 1024 bytes. Files that can't reach the target get a clear message, and the smallest version is still offered.
+- Results of the other PDF tools can continue into the new tool, and its results can continue into them.
+- `APP_VERSION` is now `2026-11-02.2`.
+- Owner's decision: no YouTube or Instagram downloader. It would need a server, which breaks "Nothing leaves the device", and it carries legal risk. Don't offer it again unless the owner asks.
 
 ### 2026-11-02: Convert an image from a link
 - Image Convert has a new "paste a link to an image" box. The image joins the list like any other file, then converts to the chosen format.

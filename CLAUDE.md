@@ -36,7 +36,7 @@ So far the owner has had each finished change pushed and published. Ask first be
 
 ## How the code is organised
 
-Everything is inside one IIFE in the last `<script>` of `pdf-press.html`. Search for these section markers: `// ---------- error log`, `saving files`, `status`, `loading PDFs`, `sample files`, `state`, `file rows`, `results`, `passing results to another PDF tool`, `MERGE`, `SPLIT`, `COMPRESS`, `IMAGES`, `IMAGE COMPRESS`, `IMAGE CONVERT`, `IMAGE LINKS`, `OUTPUT SIZE ESTIMATES`, `theme`, `wiring`.
+Everything is inside one IIFE in the last `<script>` of `pdf-press.html`. Search for these section markers: `// ---------- error log`, `saving files`, `status`, `loading PDFs`, `sample files`, `state`, `file rows`, `results`, `passing results to another PDF tool`, `MERGE`, `SPLIT`, `COMPRESS`, `IMAGES`, `IMAGE COMPRESS`, `IMAGE CONVERT`, `EXACT SIZE`, `IMAGE LINKS`, `OUTPUT SIZE ESTIMATES`, `theme`, `wiring`.
 
 Libraries:
 - Always loaded from cdnjs: pdf-lib 1.17.1, PDF.js 3.11.174 and JSZip 3.10.1. PDF.js runs on the main thread (`pdf.worker.min.js` loaded as a plain script), so pages render through `requestAnimationFrame`.
@@ -50,7 +50,9 @@ Libraries:
 | `merge` | PDF | Combine PDFs, reorder by drag or arrows |
 | `split` | PDF | Page ranges, or a new file every N pages; one input file |
 | `compress` | PDF | Less / Medium / High (150 / 110 / 72 DPI). Pages become JPEGs, so text stops being selectable |
+| `pdfsize` | PDF | Fits each PDF under a chosen size. Pages become JPEGs, and files already under the target are kept unchanged |
 | `imgcompress` | Image | Quality, resize, same format / WebP / JPG |
+| `imgsize` | Image | Fits each image under a chosen size as JPG or WebP. Lowers quality first, then pixel dimensions |
 | `convert` | Image | Mixed formats to JPG, PNG, WebP, BMP, or AVIF where the browser can encode it. Also takes a pasted image link, fetched directly by the browser, so the website must allow it (CORS) |
 
 ### Adding a tool
@@ -82,7 +84,9 @@ Element ids follow the tool id, and the `wiring` section connects them through `
 - PDF results download automatically after a 5-second countdown. Choosing a "Continue with" tool cancels the download, and "Download now" skips the wait. Image tools download immediately.
 - Several output files download as one `.zip`.
 - Work in progress shows moving cues: button spinner, striped progress bar with percentage, loading placeholders, animated result card.
-- Expected output size appears per file and in total before processing. Image sizes are exact (a real background encode, reused on click). PDF Compress is estimated from up to 3 sample pages. Merge and Split are rough.
+- Expected output size appears per file and in total before processing. Image sizes are exact (a real background encode, reused on click). PDF Compress and the PDF exact-size tool are estimated from up to 3 sample pages. Merge and Split are rough.
+- Exact-size targets count 1 KB as 1000 bytes, so results also pass websites that count 1 KB as 1024 bytes. A result is only called under the target after its real size is measured. If a file can't reach the target, the result says so.
+- The YouTube and Instagram downloader was considered and left out: it would need a server, which breaks "Nothing leaves the device", and it carries legal risk. Don't offer it again unless the owner asks.
 - No Google Drive for logs. Errors are JSON: kept in the browser (last 20), with "Copy error details" and "Download error log (.json)" buttons. The owner chose to have people send the file by hand.
 - Brand: the Docura logo and dark indigo design from the owner's mockup. Plain language in the interface.
 

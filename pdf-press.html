@@ -1,6 +1,6 @@
 <title>Docura</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Docura: free PDF and image tools that run in your browser. Merge, split and compress PDFs; compress and convert images. Nothing is uploaded.">
+<meta name="description" content="Docura: free PDF and image tools that run in your browser. Merge, split and compress PDFs; compress and convert images; fit files under an exact size. Nothing is uploaded.">
 <meta name="theme-color" content="#0a0c16">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -336,6 +336,11 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   .thumb { width: 44px; height: 56px; }
   .btn.primary { width: 100%; justify-content: center; }
 }
+.size-row { display: flex; gap: 8px; max-width: 280px; }
+.size-row input { flex: 1; min-width: 0; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; }
+.presets .btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   .job, .results, .file.enter, .done-ic, .drop-icon, .drop.over, .thumb:empty, .progress i, .art .float-a, .art .float-b, .est-total, .pipe, .cd-ring .bar { animation: none !important; }
@@ -445,9 +450,19 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       <span><b>Compress PDFs</b><small>Reduce file size with three quality levels.</small></span>
       <span class="go" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </button>
+    <button class="tab tone-blue" role="tab" id="tab-pdfsize" aria-selected="false" data-tool="pdfsize" data-cat="pdf">
+      <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+      <span><b>Compress to Exact Size</b><small>Get a PDF under a size you choose, like 500 KB.</small></span>
+      <span class="go" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </button>
     <button class="tab tone-green" role="tab" id="tab-imgcompress" aria-selected="false" data-tool="imgcompress" data-cat="img" hidden>
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="13" height="11" rx="2"/><path d="m3 13 4-4 4 4M13 11l1-1"/><path d="M21 14v6h-6M21 20l-5-5"/></svg></span>
       <span><b>Compress Images</b><small>Shrink photos and graphics, with live sizes.</small></span>
+      <span class="go" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </button>
+    <button class="tab tone-violet" role="tab" id="tab-imgsize" aria-selected="false" data-tool="imgsize" data-cat="img" hidden>
+      <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+      <span><b>Compress to Exact Size</b><small>Get a photo under a size you choose, like 50 KB.</small></span>
       <span class="go" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </button>
     <button class="tab tone-blue" role="tab" id="tab-convert" aria-selected="false" data-tool="convert" data-cat="img" hidden>
@@ -547,6 +562,41 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     <div id="res-compress"></div>
   </section>
 
+  <!-- PDF EXACT SIZE -->
+  <section class="panel" id="panel-pdfsize" role="tabpanel" aria-labelledby="tab-pdfsize" hidden>
+    <div class="drop" data-drop="pdfsize">
+      <div class="big">Drop PDFs to fit a size</div>
+      <p>Pick a size limit, and each PDF is compressed to fit under it.</p>
+      <div class="drop-actions">
+        <label class="btn primary" for="in-pdfsize">Choose PDFs</label>
+        <button class="btn" data-sample="pdfsize">Try with a sample file</button>
+      </div>
+      <input type="file" id="in-pdfsize" accept="application/pdf,.pdf" multiple hidden>
+    </div>
+    <ul class="files" id="list-pdfsize"></ul>
+    <div class="opts" id="opts-pdfsize" hidden>
+      <h3>Target size</h3>
+      <div class="field">
+        <label for="pdfsize-value">Keep each file under</label>
+        <div class="size-row">
+          <input type="number" id="pdfsize-value" value="1" min="1" step="any" inputmode="decimal">
+          <select id="pdfsize-unit" aria-label="Unit"><option value="1000">KB</option><option value="1000000" selected>MB</option></select>
+        </div>
+        <div class="presets" role="group" aria-label="Common sizes"><button class="btn small" type="button" data-value="100" data-unit="1000">100 KB</button><button class="btn small" type="button" data-value="200" data-unit="1000">200 KB</button><button class="btn small" type="button" data-value="500" data-unit="1000">500 KB</button><button class="btn small" type="button" data-value="1" data-unit="1000000">1 MB</button><button class="btn small" type="button" data-value="2" data-unit="1000000">2 MB</button><button class="btn small" type="button" data-value="5" data-unit="1000000">5 MB</button></div>
+        <span class="err" id="pdfsize-err"></span>
+        <span class="hint">Each result lands as close as possible without going over, with a small margin so it passes any website's limit.</span>
+      </div>
+      <div class="est-total" id="est-total-pdfsize" role="status" hidden></div>
+      <span class="hint" style="color:var(--muted);font-size:13px">Each page is saved as an image, so text can no longer be selected or searched, and very small targets can make it hard to read. Files already under the target are kept as they are.</span>
+    </div>
+    <div class="action" id="act-pdfsize" hidden>
+      <button class="btn primary" id="go-pdfsize">Compress to size</button>
+      <span class="note" id="note-pdfsize"></span>
+    </div>
+    <div id="status-pdfsize"></div>
+    <div id="res-pdfsize"></div>
+  </section>
+
   <!-- IMAGE COMPRESS -->
   <section class="panel" id="panel-imgcompress" role="tabpanel" aria-labelledby="tab-imgcompress" hidden>
     <div class="drop" data-drop="imgcompress" data-more="Add more images">
@@ -596,6 +646,48 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     </div>
     <div id="status-imgcompress"></div>
     <div id="res-imgcompress"></div>
+  </section>
+
+  <!-- IMAGE EXACT SIZE -->
+  <section class="panel" id="panel-imgsize" role="tabpanel" aria-labelledby="tab-imgsize" hidden>
+    <div class="drop" data-drop="imgsize" data-more="Add more images">
+      <div class="big">Drop images to fit a size</div>
+      <p>Pick a size limit, and each image is compressed to fit under it.</p>
+      <div class="drop-actions">
+        <label class="btn primary" for="in-imgsize">Choose images</label>
+        <button class="btn" data-sample="imgsize">Try with sample images</button>
+      </div>
+      <input type="file" id="in-imgsize" accept="image/*,.heic,.heif,.tif,.tiff,.avif,.bmp,.ico,.svg" multiple hidden>
+    </div>
+    <ul class="files" id="list-imgsize"></ul>
+    <div class="opts" id="opts-imgsize" hidden>
+      <h3>Target size</h3>
+      <div class="field">
+        <label for="imgsize-value">Keep each file under</label>
+        <div class="size-row">
+          <input type="number" id="imgsize-value" value="100" min="1" step="any" inputmode="decimal">
+          <select id="imgsize-unit" aria-label="Unit"><option value="1000" selected>KB</option><option value="1000000">MB</option></select>
+        </div>
+        <div class="presets" role="group" aria-label="Common sizes"><button class="btn small" type="button" data-value="20" data-unit="1000">20 KB</button><button class="btn small" type="button" data-value="50" data-unit="1000">50 KB</button><button class="btn small" type="button" data-value="100" data-unit="1000">100 KB</button><button class="btn small" type="button" data-value="200" data-unit="1000">200 KB</button><button class="btn small" type="button" data-value="500" data-unit="1000">500 KB</button><button class="btn small" type="button" data-value="1" data-unit="1000000">1 MB</button></div>
+        <span class="err" id="imgsize-err"></span>
+        <span class="hint">Each result lands as close as possible without going over, with a small margin so it passes any website's limit.</span>
+      </div>
+      <div class="field">
+        <label>Save as</label>
+        <div class="choices" role="radiogroup" aria-label="Output format">
+          <label class="choice"><input type="radio" name="imgsize-out" id="imgsize-out-jpeg" value="jpeg" checked><b>JPG</b><span>Accepted almost everywhere, no transparency</span></label>
+          <label class="choice"><input type="radio" name="imgsize-out" id="imgsize-out-webp" value="webp"><b>WebP</b><span>Better quality at the same size, keeps transparency</span></label>
+        </div>
+      </div>
+      <div class="est-total" id="est-total-imgsize" role="status" hidden></div>
+      <span class="hint" style="color:var(--muted);font-size:13px">If lowering quality isn't enough, the image is also made smaller in pixels. Transparent areas become white in JPG, and animated GIFs keep their first frame.</span>
+    </div>
+    <div class="action" id="act-imgsize" hidden>
+      <button class="btn primary" id="go-imgsize">Compress to size</button>
+      <span class="note" id="note-imgsize"></span>
+    </div>
+    <div id="status-imgsize"></div>
+    <div id="res-imgsize"></div>
   </section>
 
   <!-- IMAGE CONVERT -->
@@ -698,7 +790,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   // Each error becomes a JSON report: kept in this browser (last 20), downloadable as a .json file,
   // and POSTed as JSON to LOG_ENDPOINT once one is set. Reports never include file contents or file names.
   const LOG_ENDPOINT = "";
-  const APP_VERSION = "2026-11-02.1";
+  const APP_VERSION = "2026-11-02.2";
   let diag = {};
   const fileFacts = list => list.map(x => x.format
     ? { sizeMB: +(x.size / 1048576).toFixed(2), format: x.format, ext: (x.name.match(/\.([^.]+)$/) || [])[1] || "", dims: x.width + "x" + x.height, sample: x.sample }
@@ -904,9 +996,9 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   };
 
   // ---------- state ----------
-  const state = { merge: [], split: [], compress: [], imgcompress: [], convert: [] };
-  const multi = { merge: true, split: false, compress: true, imgcompress: true, convert: true };
-  const IMG_TOOLS = ["imgcompress", "convert"];
+  const state = { merge: [], split: [], compress: [], pdfsize: [], imgcompress: [], imgsize: [], convert: [] };
+  const multi = { merge: true, split: false, compress: true, pdfsize: true, imgcompress: true, imgsize: true, convert: true };
+  const IMG_TOOLS = ["imgcompress", "imgsize", "convert"];
 
   function addItems(tool, items) {
     if (!items.length) return;
@@ -974,6 +1066,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     const drop = $(`[data-drop="${tool}"]`);
     drop.querySelector(".big").textContent = has && tool !== "split" ? (drop.dataset.more || "Add more PDFs") : has ? "Choose a different PDF" : drop.dataset.title;
     if (tool === "convert") updateConvertHint();
+    if (SIZE_TOOLS.includes(tool)) refreshTarget(tool);
     if (tool === "merge") {
       const pages = list.reduce((s, x) => s + x.pages, 0);
       $("#go-merge").disabled = list.length < 2;
@@ -1038,13 +1131,14 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   }
 
   // ---------- passing results to another PDF tool ----------
-  const PDF_TOOLS = ["merge", "split", "compress"];
+  const PDF_TOOLS = ["merge", "split", "compress", "pdfsize"];
   function pipeRow(tool, outputs) {
     const n = outputs.length;
     const label = {
       merge: n > 1 ? `Merge these ${n} PDFs` : "Merge with more PDFs",
       split: "Split PDF",
       compress: n > 1 ? `Compress all ${n} PDFs` : "Compress PDF",
+      pdfsize: n > 1 ? `Fit all ${n} PDFs to a size` : "Fit to an exact size",
     };
     // Split works on one file at a time
     const targets = PDF_TOOLS.filter(t => t !== tool && (t !== "split" || n === 1));
@@ -1106,6 +1200,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
         sub.textContent = (o.pages != null ? o.pages + (o.pages === 1 ? " page · " : " pages · ") : "") + fmtSize(o.bytes.byteLength);
       }
       const meta = el("div", { class: "meta" }, [el("div", { class: "name", text: o.name, title: o.name }), sub]);
+      if (o.note) meta.append(el("div", { class: "sub" }, o.missed ? el("span", { class: "saving worse", text: o.note }) : document.createTextNode(o.note)));
       if (o.before != null) {
         const pct = Math.max(0, 1 - o.bytes.byteLength / o.before);
         meta.append(el("div", { class: "bar" }, el("i", { style: "width:" + Math.round((1 - pct) * 100) + "%" })));
@@ -1115,7 +1210,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     $("#res-" + tool).replaceChildren(box);
   }
 
-  const BUSY = { merge: "Merging…", split: "Splitting…", compress: "Compressing…", imgcompress: "Compressing…", convert: "Converting…" };
+  const BUSY = { merge: "Merging…", split: "Splitting…", compress: "Compressing…", pdfsize: "Fitting…", imgcompress: "Compressing…", imgsize: "Fitting…", convert: "Converting…" };
   async function run(tool, fn) {
     const btn = $("#go-" + tool);
     const label = btn.textContent;
@@ -1133,7 +1228,9 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       const options = tool === "compress" ? { level: $('input[name="level"]:checked').value }
         : tool === "split" ? { mode: $('input[name="split-mode"]:checked').value, ranges: $("#split-ranges").value, every: $("#split-n").value, join: $("#split-join").checked }
         : tool === "imgcompress" ? { quality: $("#img-quality").value, maxSide: $("#img-max").value, out: $('input[name="img-out"]:checked').value }
-        : tool === "convert" ? { target: $('input[name="target"]:checked').value, quality: $("#conv-quality").value } : {};
+        : tool === "convert" ? { target: $('input[name="target"]:checked').value, quality: $("#conv-quality").value }
+        : tool === "pdfsize" ? { targetBytes: targetSize("pdfsize") }
+        : tool === "imgsize" ? { targetBytes: targetSize("imgsize"), out: $('input[name="imgsize-out"]:checked').value } : {};
       const report = logError(tool, lastStep[tool], e, { files: fileFacts(state[tool]), options });
       setStatus(tool, "err", e.userMessage || "Something went wrong while processing. If the file is password protected, unlock it first. Otherwise, send the error details below so it can be fixed.", null, report);
     }
@@ -1278,18 +1375,19 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       canvas.width = canvas.height = 0;
     }
     const err = new Error("Page could not be converted to an image after 4 attempts (" + diag.page.lastFailure + ")");
-    err.userMessage = `Page ${diag.page.number} is too large for this browser to compress. Try High compression, or use a computer with more memory.`;
+    err.userMessage = `Page ${diag.page.number} is too large for this browser to compress. Try High compression or a smaller target size, or use a computer with more memory.`;
     throw err;
   }
-  async function compressOne(item, level, onPage) {
-    const { dpi, q } = LEVELS[level];
+  const pageScale = (vp1, dpi) => Math.min(dpi / 72, Math.sqrt(MAX_PIXELS / (vp1.width * vp1.height)), MAX_SIDE / vp1.width, MAX_SIDE / vp1.height);
+  async function compressOne(item, settings, onPage) {
+    const { dpi, q } = settings;
     const out = await PDFDocument.create();
     for (let p = 1; p <= item.pages; p++) {
       onPage(p);
       const page = await item.pdf.getPage(p);
       const vp1 = page.getViewport({ scale: 1 });
-      const scale = Math.min(dpi / 72, Math.sqrt(MAX_PIXELS / (vp1.width * vp1.height)), MAX_SIDE / vp1.width, MAX_SIDE / vp1.height);
-      diag.page = { number: p, of: item.pages, sizePt: Math.round(vp1.width) + "x" + Math.round(vp1.height), level };
+      const scale = pageScale(vp1, dpi);
+      diag.page = { number: p, of: item.pages, sizePt: Math.round(vp1.width) + "x" + Math.round(vp1.height), ...settings };
       const blob = await renderPageJpeg(page, scale, q);
       const jpg = await out.embedJpg(await blob.arrayBuffer());
       const np = out.addPage([vp1.width, vp1.height]);
@@ -1305,7 +1403,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     let done = 0;
     const outputs = [];
     for (const item of list) {
-      let bytes = await compressOne(item, level, p => setStatus("compress", "info", `Compressing ${item.name}, page ${p} of ${item.pages}…`, (done + p - 1) / total));
+      let bytes = await compressOne(item, { ...LEVELS[level], level }, p => setStatus("compress", "info", `Compressing ${item.name}, page ${p} of ${item.pages}…`, (done + p - 1) / total));
       done += item.pages;
       let kept = false;
       if (bytes.byteLength >= item.size) { bytes = new Uint8Array(item.bytes.slice(0)); kept = true; }
@@ -1601,6 +1699,190 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     await finish("convert", outputs.length === 1 ? "Your image is ready" : outputs.length + " images converted to " + FMT[target].label, outputs, "converted_" + FMT[target].ext + ".zip");
   }));
 
+  // ---------- EXACT SIZE ----------
+  // Fits each file under a size the user picks. KB and MB count in 1000s here, so a result also passes sites that count in 1024s.
+  const SIZE_TOOLS = ["imgsize", "pdfsize"];
+  const MIN_TARGET = 5000;
+  const targetSize = tool => Math.round((+$("#" + tool + "-value").value || 0) * +$("#" + tool + "-unit").value);
+  const targetLabel = tool => $("#" + tool + "-value").value.trim() + " " + $("#" + tool + "-unit").selectedOptions[0].text;
+  function refreshTarget(tool) {
+    const bad = targetSize(tool) < MIN_TARGET;
+    $("#" + tool + "-err").textContent = bad ? "Enter a target of 5 KB or more." : "";
+    const go = $("#go-" + tool);
+    if (!go.classList.contains("busy")) go.disabled = bad;
+    const value = +$("#" + tool + "-value").value, unit = $("#" + tool + "-unit").value;
+    document.querySelectorAll(`#opts-${tool} [data-value]`).forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.value === value && b.dataset.unit === unit)));
+  }
+  SIZE_TOOLS.forEach(tool => {
+    const changed = () => { refreshTarget(tool); paintEstimates(tool); scheduleEstimate(tool); };
+    $("#" + tool + "-value").addEventListener("input", changed);
+    $("#" + tool + "-unit").addEventListener("change", changed);
+    document.querySelectorAll(`#opts-${tool} [data-value]`).forEach(b => b.addEventListener("click", () => {
+      $("#" + tool + "-value").value = b.dataset.value;
+      $("#" + tool + "-unit").value = b.dataset.unit;
+      changed();
+    }));
+  });
+  document.querySelectorAll('input[name="imgsize-out"]').forEach(r => r.addEventListener("change", () => { paintEstimates("imgsize"); scheduleEstimate("imgsize"); }));
+  samples.imgsize = makeSampleImages;
+  samples.pdfsize = async () => [await loadPdf("Scanned-Receipts.pdf", await makeSample("Scanned Receipts", 3, rgb(.4, .3, .2), true), true)];
+
+  // Images: find the highest quality that fits. If the floor quality is still too big, shrink the pixels and search again.
+  const FIT_FLOOR_Q = 0.5, FIT_TOP_Q = 0.92, FIT_MIN_SIDE = 16;
+  async function fitImage(item, limit, target, alive, dg = diag) {
+    const d = await decodeImage(item);
+    try {
+      let scale = 1, smallest = null;
+      while (Math.max(item.width, item.height) * scale >= FIT_MIN_SIDE) {
+        if (!alive()) return null;
+        const enc = async (q, s = scale) => ({ ...await renderImage(d, Math.max(1, Math.round(item.width * s)), Math.max(1, Math.round(item.height * s)), target, q, dg), q });
+        const low = await enc(FIT_FLOOR_Q);
+        if (!smallest || low.blob.size < smallest.blob.size) smallest = low;
+        if (low.blob.size > limit) {
+          // Leave some room, so the quality search below has space to climb back up
+          scale *= Math.min(0.9, Math.sqrt(limit / (low.blob.size * 1.3)));
+          continue;
+        }
+        let best = low, lo = FIT_FLOOR_Q, hi = FIT_TOP_Q;
+        const top = await enc(hi);
+        if (top.blob.size <= limit) best = top;
+        for (let i = 0; i < 6 && best !== top && best.blob.size < limit * 0.97; i++) {
+          if (!alive()) return null;
+          const mid = (lo + hi) / 2, r = await enc(mid);
+          if (r.blob.size <= limit) { best = r; lo = mid; } else hi = mid;
+        }
+        // Shrinking overshoots a little, so grow back into the leftover space at the same quality
+        let fits = scale, tooBig = 1;
+        for (let i = 0; i < 5 && fits < tooBig && best.blob.size < limit * 0.95; i++) {
+          if (!alive()) return null;
+          let grown = fits * Math.sqrt(limit * 0.98 / best.blob.size);
+          if (grown >= tooBig) grown = (fits + tooBig) / 2;
+          const r = await enc(best.q, grown);
+          if (r.blob.size > limit) tooBig = grown; else { best = r; fits = grown; }
+        }
+        return best;
+      }
+      return { ...smallest, missed: true };
+    } finally { if (d.src.close) d.src.close(); }
+  }
+  const fitCache = new Map(); // item id → { key, r } (or { key, error }) for the latest fit of that image
+  const imgFitOut = () => $('input[name="imgsize-out"]:checked').value;
+  const imgFitKeep = (item, limit, target) => item.size <= limit && item.format === target;
+  async function imageFitFor(item, limit, target, alive, dg) {
+    const key = [limit, target].join("|"), hit = fitCache.get(item.id);
+    if (hit && hit.key === key && hit.r) return hit.r;
+    const r = await fitImage(item, limit, target, alive, dg);
+    if (r) fitCache.set(item.id, { key, r });
+    return r;
+  }
+  $("#go-imgsize").addEventListener("click", () => run("imgsize", async () => {
+    const list = state.imgsize, outputs = [], limit = targetSize("imgsize"), label = targetLabel("imgsize"), target = imgFitOut();
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      setStatus("imgsize", "info", `Fitting ${item.name} under ${label} (${i + 1} of ${list.length})…`, i / list.length);
+      await tick();
+      diag.image = { number: i + 1, of: list.length, format: item.format, dims: item.width + "x" + item.height };
+      if (imgFitKeep(item, limit, target)) {
+        outputs.push({ name: item.name, bytes: await asBytes(item.blob), mime: FMT[item.format].mime, before: item.size, kept: true, note: "Already under " + label + ", so it was kept as is." });
+        continue;
+      }
+      const r = await imageFitFor(item, limit, target, () => true);
+      const resized = r.width !== item.width || r.height !== item.height;
+      outputs.push({
+        name: stripExt(item.name) + "_" + (r.missed ? "compressed" : label.replace(" ", "")) + "." + FMT[target].ext,
+        bytes: await asBytes(r.blob), mime: FMT[target].mime, before: item.size, missed: !!r.missed,
+        note: r.missed ? "Couldn't get under " + label + ". This is the smallest version possible."
+          : r.width + "×" + r.height + (resized ? " (was " + item.width + "×" + item.height + ")" : "") + " · quality " + Math.round(r.q * 100) + "%",
+      });
+    }
+    await finish("imgsize", fitTitle(outputs, label, "image"), outputs, "exact_size_images.zip");
+  }));
+  function fitTitle(outputs, label, noun) {
+    const missed = outputs.filter(o => o.missed).length;
+    if (missed) return (outputs.length === 1 ? "This " + noun : missed + " of " + outputs.length) + " couldn't get under " + label;
+    return outputs.length === 1 ? "Your " + noun + " is under " + label : outputs.length + " " + noun + "s are under " + label;
+  }
+
+  // PDFs: one setting from 0 to 1 drives both resolution and JPEG quality. A few sample pages find a starting point
+  // cheaply, then the real file is built and measured, because only the finished size can be promised.
+  const fitSettings = t => ({ dpi: Math.round(30 + 170 * t), q: +(0.3 + 0.6 * t).toFixed(2) });
+  const pdfSamples = new Map(); // item id → Map(setting → estimated bytes)
+  async function sampleFit(item, t, alive) {
+    if (!pdfSamples.has(item.id)) pdfSamples.set(item.id, new Map());
+    const memo = pdfSamples.get(item.id);
+    if (memo.has(t)) return memo.get(t);
+    const { dpi, q } = fitSettings(t), pages = [...new Set([1, Math.ceil(item.pages / 2), item.pages])];
+    let sum = 0;
+    for (const p of pages) {
+      if (!alive()) return null;
+      const page = await item.pdf.getPage(p);
+      diag.page = { number: p, of: item.pages, dpi, q, sampling: true };
+      sum += (await renderPageJpeg(page, pageScale(page.getViewport({ scale: 1 }), dpi), q)).size;
+      page.cleanup();
+    }
+    const est = Math.round(sum / pages.length * item.pages + 1500 + 250 * item.pages);
+    memo.set(t, est);
+    return est;
+  }
+  // The highest setting whose estimate fits `aim`. Returns null if cancelled.
+  async function searchFit(item, aim, alive) {
+    const top = await sampleFit(item, 1, alive);
+    if (top == null) return null;
+    if (top <= aim) return 1;
+    const bottom = await sampleFit(item, 0, alive);
+    if (bottom == null) return null;
+    if (bottom > aim) return 0;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 8; i++) {
+      const mid = (lo + hi) / 2, est = await sampleFit(item, mid, alive);
+      if (est == null) return null;
+      if (est <= aim) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+  async function fitPdf(item, limit, onTry) {
+    let correction = 1, best = null, smallest = null, under = -1, over = Infinity;
+    const always = () => true;
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      let t = await searchFit(item, limit * 0.98 / correction, always);
+      if (t >= over) t = over * 0.85;
+      if (t <= under) break;
+      const bytes = await compressOne(item, { ...fitSettings(t), target: limit }, p => onTry(attempt, p));
+      const out = { bytes, t };
+      if (!smallest || bytes.byteLength < smallest.bytes.byteLength) smallest = out;
+      if (bytes.byteLength <= limit) {
+        best = out; under = t;
+        if (bytes.byteLength >= limit * 0.9 || t >= 1) break;
+      } else {
+        over = t;
+        if (t < 0.005) break;
+      }
+      correction = bytes.byteLength / await sampleFit(item, t, always);
+    }
+    return best || { ...smallest, missed: true };
+  }
+  $("#go-pdfsize").addEventListener("click", () => run("pdfsize", async () => {
+    const list = state.pdfsize, outputs = [], limit = targetSize("pdfsize"), label = targetLabel("pdfsize");
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i], original = () => new Uint8Array(item.bytes.slice(0));
+      if (item.size <= limit) {
+        outputs.push({ name: item.name, bytes: original(), before: item.size, kept: true, note: "Already under " + label + ", so it was kept as is." });
+        continue;
+      }
+      setStatus("pdfsize", "info", `Fitting ${item.name} under ${label}…`, i / list.length);
+      await tick();
+      const r = await fitPdf(item, limit, (attempt, p) => setStatus("pdfsize", "info", `Fitting ${item.name} under ${label}: try ${attempt}, page ${p} of ${item.pages}…`, (i + (p - 1) / item.pages) / list.length));
+      const { dpi } = fitSettings(r.t), kept = r.missed && r.bytes.byteLength >= item.size;
+      outputs.push({
+        name: kept ? item.name : baseName(item.name) + "_" + (r.missed ? "compressed" : label.replace(" ", "")) + ".pdf",
+        bytes: kept ? original() : r.bytes, before: item.size, kept, missed: !!r.missed,
+        note: r.missed ? "Couldn't get under " + label + ". This is the smallest version possible, even at the lowest quality."
+          : "Pages saved as images at about " + dpi + " DPI, so text can't be selected." + (dpi < 72 ? " Small text may be hard to read." : ""),
+      });
+    }
+    await finish("pdfsize", fitTitle(outputs, label, "PDF"), outputs, "exact_size_pdfs.zip");
+  }));
+
   // ---------- IMAGE LINKS ----------
   // The browser fetches the image itself, so the website has to allow it (CORS); there is no server to go through.
   // Links can reveal names, so they stay out of status text and error reports.
@@ -1673,6 +1955,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   // Images: the real encode runs in the background, so sizes are exact and the click reuses them.
   // PDF compress: a few sample pages are encoded at each level and scaled up to the page count.
   const pdfEst = new Map(); // item id → { less, medium, high } bytes, or { error }
+  const pdfFitEst = new Map(); // "item id|target" → { t, bytes }, or { error }
   async function estimatePdf(item, alive) {
     const sample = [...new Set([1, Math.ceil(item.pages / 2), item.pages])];
     const sum = { less: 0, medium: 0, high: 0 };
@@ -1726,6 +2009,33 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     },
     imgcompress: alive => estimateImages("imgcompress", alive),
     convert: alive => estimateImages("convert", alive),
+    imgsize: async alive => {
+      const limit = targetSize("imgsize"), target = imgFitOut();
+      if (limit < MIN_TARGET) return;
+      for (const item of [...state.imgsize]) {
+        if (!alive()) return;
+        if (imgFitKeep(item, limit, target)) continue;
+        try { await imageFitFor(item, limit, target, alive, {}); }
+        catch (e) { fitCache.set(item.id, { key: [limit, target].join("|"), error: e.userMessage ? "this browser can't save " + FMT[target].label : "too large to estimate" }); }
+        if (alive()) paintEstimates("imgsize");
+        await tick();
+      }
+    },
+    pdfsize: async alive => {
+      const limit = targetSize("pdfsize");
+      if (limit < MIN_TARGET) return;
+      for (const item of [...state.pdfsize]) {
+        if (!alive()) return;
+        const key = item.id + "|" + limit;
+        if (item.size <= limit || pdfFitEst.has(key)) continue;
+        try {
+          const t = await searchFit(item, limit * 0.98, alive);
+          if (t == null) return;
+          pdfFitEst.set(key, { t, bytes: pdfSamples.get(item.id).get(t) });
+        } catch (_) { pdfFitEst.set(key, { error: "couldn't estimate" }); }
+        if (alive()) paintEstimates("pdfsize");
+      }
+    },
   };
   const estGen = {}, estTimer = {};
   function scheduleEstimate(tool, delay = 350) {
@@ -1746,6 +2056,25 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       if (e.error) return { error: e.error };
       const b = e[$('input[name="level"]:checked').value];
       return { bytes: b, approx: true, label: b >= item.size ? "original kept" : null };
+    }
+    if (SIZE_TOOLS.includes(tool)) {
+      const limit = targetSize(tool);
+      if (limit < MIN_TARGET) return { error: "enter a target size first" };
+      if (tool === "pdfsize") {
+        if (item.size <= limit) return { bytes: item.size, label: "already under the target, kept as is" };
+        const e = pdfFitEst.get(item.id + "|" + limit);
+        if (!e) return { pending: true };
+        if (e.error) return { error: e.error };
+        if (e.bytes > limit) return { bytes: e.bytes, approx: true, label: "may not reach the target" };
+        return { bytes: e.bytes, approx: true, label: "at about " + fitSettings(e.t).dpi + " DPI" + (fitSettings(e.t).dpi < 72 ? ", small text may be hard to read" : "") };
+      }
+      const target = imgFitOut();
+      if (imgFitKeep(item, limit, target)) return { bytes: item.size, label: "already under the target, kept as is" };
+      const hit = fitCache.get(item.id);
+      if (!hit || hit.key !== [limit, target].join("|")) return { pending: true };
+      if (hit.error) return { error: hit.error };
+      const resized = hit.r.width !== item.width || hit.r.height !== item.height;
+      return { bytes: hit.r.blob.size, label: hit.r.missed ? "can't reach the target" : resized ? "resized to " + hit.r.width + "×" + hit.r.height : null };
     }
     const plan = imagePlan(tool, item);
     if (plan.keep) return { bytes: item.size, label: plan.label };
