@@ -11,7 +11,7 @@ Docura: PDF & image tools that run in your browser. Files are processed on your 
 
 ## Image tools
 - **Compress** – quality slider, optional resize, keep each file's format or save as WebP/JPG
-- **Convert** – mix any formats in one batch and convert them all to JPG, PNG, WebP, BMP (or AVIF where the browser supports it). Each file's real format is detected from its contents, so mislabeled files still convert correctly.
+- **Convert** – mix any formats in one batch and convert them all to JPG, PNG, WebP, BMP (or AVIF where the browser supports it). Each file's real format is detected from its contents, so mislabeled files still convert correctly. You can also paste a link to an image on the web; your browser gets it directly from that website, which works only if the website allows it.
 
 Reads JPG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF, AVIF, ICO and SVG.
 

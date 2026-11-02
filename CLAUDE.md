@@ -36,7 +36,7 @@ So far the owner has had each finished change pushed and published. Ask first be
 
 ## How the code is organised
 
-Everything is inside one IIFE in the last `<script>` of `pdf-press.html`. Search for these section markers: `// ---------- error log`, `saving files`, `status`, `loading PDFs`, `sample files`, `state`, `file rows`, `results`, `passing results to another PDF tool`, `MERGE`, `SPLIT`, `COMPRESS`, `IMAGES`, `IMAGE COMPRESS`, `IMAGE CONVERT`, `OUTPUT SIZE ESTIMATES`, `theme`, `wiring`.
+Everything is inside one IIFE in the last `<script>` of `pdf-press.html`. Search for these section markers: `// ---------- error log`, `saving files`, `status`, `loading PDFs`, `sample files`, `state`, `file rows`, `results`, `passing results to another PDF tool`, `MERGE`, `SPLIT`, `COMPRESS`, `IMAGES`, `IMAGE COMPRESS`, `IMAGE CONVERT`, `IMAGE LINKS`, `OUTPUT SIZE ESTIMATES`, `theme`, `wiring`.
 
 Libraries:
 - Always loaded from cdnjs: pdf-lib 1.17.1, PDF.js 3.11.174 and JSZip 3.10.1. PDF.js runs on the main thread (`pdf.worker.min.js` loaded as a plain script), so pages render through `requestAnimationFrame`.
@@ -51,7 +51,7 @@ Libraries:
 | `split` | PDF | Page ranges, or a new file every N pages; one input file |
 | `compress` | PDF | Less / Medium / High (150 / 110 / 72 DPI). Pages become JPEGs, so text stops being selectable |
 | `imgcompress` | Image | Quality, resize, same format / WebP / JPG |
-| `convert` | Image | Mixed formats to JPG, PNG, WebP, BMP, or AVIF where the browser can encode it |
+| `convert` | Image | Mixed formats to JPG, PNG, WebP, BMP, or AVIF where the browser can encode it. Also takes a pasted image link, fetched directly by the browser, so the website must allow it (CORS) |
 
 ### Adding a tool
 
@@ -69,13 +69,13 @@ Element ids follow the tool id, and the `wiring` section connects them through `
 ### Rules that must keep holding
 
 - **Nothing leaves the device.** No uploads, and no analytics or tracking without the owner agreeing.
-- **Error reports never contain file names or contents.** `logError` strips names from the step text. Keep that true for anything new.
+- **Error reports never contain file names or contents.** `logError` strips names from the step text. Keep that true for anything new, including pasted image links, which stay out of status text and reports.
 - **Never call `canvas.toBlob` without handling `null`.** Devices refuse canvases past their limits. Use `renderPageJpeg` or `renderImage`, which cap the size and retry smaller.
 - **Save files only through `saveFile`.** It uses the `downloads` capability on claude.ai and a normal download elsewhere. claude.ai only allows certain extensions, and others are zipped automatically.
 - **Theme:** dark by default, with light through the moon button. Colours are CSS variables on `:root` and `:root[data-theme="light"]`, so define every new colour in both.
 - **Motion:** add new animations to the `prefers-reduced-motion` block.
 - **Phones:** check 375 px width, with no sideways scrolling. Keep the 16px side gutter (`.gutter`).
-- Bump `APP_VERSION` near the `error log` marker when releasing, so error reports show which version failed. It is currently behind: it says `2026-10-28.4`.
+- Bump `APP_VERSION` near the `error log` marker when releasing, so error reports show which version failed.
 
 ## Behaviour the owner asked for
 

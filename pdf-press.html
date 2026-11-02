@@ -161,6 +161,14 @@ button { font-family: var(--f-body); }
 .iconbtn:hover:not(:disabled) { background: var(--sunken); color: var(--fg); }
 .iconbtn:disabled { opacity: .3; cursor: default; }
 
+.url-box { display: grid; gap: 8px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.url-box label { font-weight: 600; font-size: 14px; }
+.url-row { display: flex; gap: 10px; }
+.url-row input { flex: 1; min-width: 0; font: 15px var(--f-mono); padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--sunken); color: var(--fg); }
+.url-row .btn { flex: none; }
+.url-box .hint { margin: 0; color: var(--muted); font-size: 13px; }
+.url-err { color: var(--bad); font-size: 13px; overflow-wrap: anywhere; }
+.url-err a { color: inherit; font-weight: 600; }
 .files { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
 .file { display: grid; grid-template-columns: auto 52px 1fr auto; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
 .file.single { grid-template-columns: 52px 1fr auto; }
@@ -601,6 +609,15 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
       </div>
       <input type="file" id="in-convert" accept="image/*,.heic,.heif,.tif,.tiff,.avif,.bmp,.ico,.svg" multiple hidden>
     </div>
+    <form class="url-box" id="url-convert" novalidate>
+      <label for="url-input">Or paste a link to an image</label>
+      <div class="url-row">
+        <input type="url" id="url-input" placeholder="https://example.com/photo.jpg" autocomplete="off" spellcheck="false">
+        <button class="btn" id="url-add" type="submit">Get image</button>
+      </div>
+      <p class="hint">Your browser gets the image directly from that website. Some websites don't allow this.</p>
+      <div class="url-err" id="url-err" role="alert" hidden></div>
+    </form>
     <ul class="files" id="list-convert"></ul>
     <div class="opts" id="opts-convert" hidden>
       <h3>Convert to</h3>
@@ -681,7 +698,7 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
   // Each error becomes a JSON report: kept in this browser (last 20), downloadable as a .json file,
   // and POSTed as JSON to LOG_ENDPOINT once one is set. Reports never include file contents or file names.
   const LOG_ENDPOINT = "";
-  const APP_VERSION = "2026-10-28.4";
+  const APP_VERSION = "2026-11-02.1";
   let diag = {};
   const fileFacts = list => list.map(x => x.format
     ? { sizeMB: +(x.size / 1048576).toFixed(2), format: x.format, ext: (x.name.match(/\.([^.]+)$/) || [])[1] || "", dims: x.width + "x" + x.height, sample: x.sample }
@@ -1583,6 +1600,74 @@ footer p { margin: 0 0 4px; max-width: 90ch; }
     }
     await finish("convert", outputs.length === 1 ? "Your image is ready" : outputs.length + " images converted to " + FMT[target].label, outputs, "converted_" + FMT[target].ext + ".zip");
   }));
+
+  // ---------- IMAGE LINKS ----------
+  // The browser fetches the image itself, so the website has to allow it (CORS); there is no server to go through.
+  // Links can reveal names, so they stay out of status text and error reports.
+  const LINK_TIMEOUT = 60000;
+  const linkFail = (reason, help) => Object.assign(new Error(reason), { reason, help });
+  function parseImageLink(text) {
+    const t = text.trim();
+    const hasScheme = /^[a-z][a-z0-9+.-]*:/i.test(t);
+    let url;
+    try { url = new URL(hasScheme ? t : "https://" + t); } catch (_) { return null; }
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (url.hostname.includes("%") || (!hasScheme && !url.hostname.includes("."))) return null;
+    if (url.protocol === "http:" && location.protocol === "https:") url.protocol = "https:"; // browsers block http images on https pages
+    return url;
+  }
+  function linkFileName(url, format) {
+    let base = url.pathname.split("/").pop();
+    try { base = decodeURIComponent(base); } catch (_) {}
+    base = base.replace(/[\\/:*?"<>|\x00-\x1f]/g, "_").trim().slice(-100) || "image";
+    return EXT_ALIASES[(base.match(/\.([^.]+)$/) || [])[1]?.toLowerCase()] ? base : base + "." + FMT[format].ext;
+  }
+  async function fetchLinkedImage(url) {
+    const stop = new AbortController(), timer = setTimeout(() => stop.abort(), LINK_TIMEOUT);
+    try {
+      const res = await fetch(url.href, { credentials: "omit", referrerPolicy: "no-referrer", signal: stop.signal });
+      if (res.status === 404 || res.status === 410) throw linkFail("There's no image at this link.");
+      if (!res.ok) throw linkFail("The website refused the request (error " + res.status + ").", "open");
+      return await res.blob();
+    } catch (e) {
+      if (e.reason) throw e;
+      if (e.name === "AbortError") throw linkFail("The website took too long to respond.", "open");
+      if (window.claude && window.claude.use) throw linkFail("This copy of Docura may not be able to open links.", "site");
+      throw linkFail("This website doesn't let other pages read its images, or it can't be reached right now.", "open");
+    } finally { clearTimeout(timer); }
+  }
+  async function loadLinkedImage(url) {
+    const blob = await fetchLinkedImage(url);
+    const format = sniff(new Uint8Array(await blob.slice(0, 512).arrayBuffer()));
+    if (!format) throw linkFail(/html/i.test(blob.type) ? "This link opens a web page, not an image. Right-click the picture, choose \"Copy image address\", and paste that here." : "This link isn't a supported image.");
+    return loadImageItem(new File([blob], linkFileName(url, format), { type: blob.type }));
+  }
+  function showLinkError(url, reason, help) {
+    const box = $("#url-err"), parts = [document.createTextNode(reason)];
+    if (help === "open") parts.push(" ", el("a", { href: url.href, target: "_blank", rel: "noopener noreferrer", text: "Open the image" }), ", save it, then add the file above.");
+    if (help === "site") parts.push(" ", el("a", { href: "https://somnarayan1001.github.io/docura/", target: "_blank", rel: "noopener", text: "Try the public site" }), ".");
+    box.replaceChildren(...parts);
+    box.hidden = false;
+  }
+  $("#url-convert").addEventListener("submit", async e => {
+    e.preventDefault();
+    const input = $("#url-input"), btn = $("#url-add");
+    if (btn.disabled) return;
+    $("#url-err").hidden = true;
+    const url = parseImageLink(input.value);
+    if (!url) return showLinkError(null, input.value.trim() ? "That doesn't look like a web link. It should start with https://" : "Paste a link to an image first.");
+    btn.disabled = true; btn.classList.add("busy");
+    setStatus("convert", "info", "Getting the image from the link…");
+    try {
+      addItems("convert", [await loadLinkedImage(url)]);
+      input.value = "";
+      setStatus("convert", "", "");
+    } catch (err) {
+      setStatus("convert", "", "");
+      showLinkError(url, err.reason || err.message || "This image couldn't be read.", err.help);
+      if (!err.reason) logError("convert", "reading image from link", err);
+    } finally { btn.disabled = false; btn.classList.remove("busy"); }
+  });
 
   // ---------- OUTPUT SIZE ESTIMATES ----------
   // Images: the real encode runs in the background, so sizes are exact and the click reuses them.
