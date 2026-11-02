@@ -24,6 +24,10 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 
 ## History
 
+### 2026-11-02: Docura moved to its own repository
+- The previous repository was renamed `toolhub` and is now the home page for all the owner's tools. A new `docura` repository holds this code and its full history, so the public `/docura/` address stays the same.
+- GitHub no longer redirects from the old repository's links to `toolhub`, because the `docura` name is in use again.
+
 ### 2026-11-02: Compress to Exact Size
 - New "Compress to Exact Size" tool in both categories (`pdfsize` and `imgsize`). Pick a target, by typing it or with a preset button, and each file lands as close to it as possible without going over.
 - Images save as JPG or WebP. Quality drops first, down to 50%, then the pixel dimensions shrink. Sizes are found by real background encodes, which the button reuses.

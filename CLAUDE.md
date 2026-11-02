@@ -10,6 +10,7 @@ Read this file and `CHANGELOG.md` before changing anything. Add an entry to `CHA
 |---|---|
 | Public site (GitHub Pages) | https://somnarayan1001.github.io/docura/ |
 | Repository (public, branch `main`) | https://github.com/somnarayan1001/docura |
+| Home for all the owner's tools (links to Docura) | https://somnarayan1001.github.io/toolhub/, repository `somnarayan1001/toolhub`, local folder `C:\Users\snara\Downloads\Toolhub` |
 | claude.ai copy (private artifact, shared only if the owner shares it) | https://claude.ai/artifact/EWWBVgY4vKaXuqnfvxgE5H |
 | Local folder | `C:\Users\snara\Downloads\PDF Press` (the old name; only the folder and `pdf-press.html` keep it) |
 
