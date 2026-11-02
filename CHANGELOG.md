@@ -12,7 +12,6 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 - Image links on the claude.ai copy. Its security rules probably block fetching other websites, so the page points people to the public site. That message was only tested by imitating the failure.
 
 **Offered, not started (the owner hasn't decided)**
-- A fallback for image links on websites that block other pages: a public image proxy (more links would work, but the link goes to that third party) or our own Cloudflare Worker. Neither is built, so "Nothing leaves the device" stays literally true.
 - Automatic error collection: a free Cloudflare Worker saving JSON reports to a private GitHub repository, plus scheduled checks. It needs the owner to create a Cloudflare account and a limited GitHub key. `LOG_ENDPOINT` in the code is ready and empty. Google Drive was ruled out.
 - A built-in AVIF encoder, so "Convert to AVIF" works in every browser. Most browsers can't save AVIF today, so the option is hidden there. It would work on the GitHub site only.
 
@@ -29,6 +28,7 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 - The browser fetches the image directly, so websites that don't allow other pages to read their images (CORS) fail. The message then offers a link to open the image, save it and add the file by hand.
 - Clear messages for bad links, dead links, refusals, timeouts and links to web pages instead of images. Links never appear in status text or error reports.
 - `APP_VERSION` is now `2026-11-02.1`.
+- Owner's decision: websites that block this stay manual. No image proxy or Cloudflare Worker, so "Nothing leaves the device" stays literally true. Don't offer this again unless the owner asks.
 
 ### 2026-11-02: Project guide and change log
 - Added `CLAUDE.md` and this file so new chats can continue the work.
