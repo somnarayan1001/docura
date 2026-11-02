@@ -1,0 +1,56 @@
+# Docura change log
+
+Newest first. Add an entry with every change, and keep "Open items" current.
+
+## Open items
+
+**Not yet tested**
+- HEIC, TIFF and real AVIF files as input. No sample files were available.
+- A real phone (only a simulated 375 px Android screen so far), including iPhone Safari.
+- The save confirmation on the claude.ai copy with a real file.
+- The original report: the 251 MB one-page PDF that failed on someone else's device. The fix was tested by forcing the failure, not on that file or device.
+
+**Offered, not started (the owner hasn't decided)**
+- Automatic error collection: a free Cloudflare Worker saving JSON reports to a private GitHub repository, plus scheduled checks. It needs the owner to create a Cloudflare account and a limited GitHub key. `LOG_ENDPOINT` in the code is ready and empty. Google Drive was ruled out.
+- A built-in AVIF encoder, so "Convert to AVIF" works in every browser. Most browsers can't save AVIF today, so the option is hidden there. It would work on the GitHub site only.
+
+**Known small items**
+- `APP_VERSION` still says `2026-10-28.4`. Bump it at the next release.
+- The gear icon from the mockup was left out because there are no settings yet.
+- The hero illustration keeps its dark colours in the light theme.
+- The claude.ai copy can't show the Docura favicon, because claude.ai controls that tab icon.
+- Browser storage keys still use the old `pdfpress-` prefix for tabs and errors. Harmless, and renaming would lose saved choices.
+
+## History
+
+### 2026-11-02: Project guide and change log
+- Added `CLAUDE.md` and this file so new chats can continue the work.
+
+### 2026-10-28: Continue with another PDF tool (`7d0b4d8`)
+- Merge, Split and Compress results offer "Continue with" buttons that pass the output to another PDF tool. Split is offered only for a single file.
+- PDF downloads wait 5 seconds with a countdown. Continuing cancels the download; "Download now" skips the wait.
+
+### 2026-10-28: Repository renamed (`c7c8441`)
+- `pdf-press` became `docura`. The public address is now `/docura/`, and the old `/pdf-press/` address returns 404.
+
+### 2026-10-28: Rebrand to Docura (`97f8184`)
+- New logo, favicon, dark indigo design, light/dark switch, hero, tool cards and feature strip. Added `build.sh`.
+- Clicking anywhere in a drop zone opens the file picker.
+
+### 2026-10-28: Expected output sizes (`d0c9e28`)
+- Sizes per file and in total, before processing.
+- Image sizes come from a real background encode. PDF Compress samples up to 3 pages at each level (within about 1% on the sample file). Merge and Split are rough.
+
+### 2026-10-28: Image tools (`3569684`)
+- New Image tools category with Compress and Convert. Formats are detected from file contents, and mixed batches are supported.
+- Fixed files dropped on a drop zone being added twice.
+
+### 2026-10-28: Large-page fix and JSON error reports (`ab08863`)
+- Fixed "Cannot read properties of null (reading 'arrayBuffer')" in PDF Compress: the canvas failed on devices with lower limits. Pages are now size-capped and retried smaller.
+- Anonymous JSON error reports, with copy and download buttons.
+
+### 2026-10-28: Progress cues and auto-download (`06ec93a`)
+- Spinner, striped progress bar, animated results. Results download automatically.
+
+### 2026-10-28: First version (`f44c13b`)
+- Published as PDF Press with Merge, Split and Compress (Less / Medium / High).
