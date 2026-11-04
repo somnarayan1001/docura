@@ -1060,11 +1060,11 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
     }
     return zip.generateAsync({ type: "uint8array" });
   }
-  // Show the result card, then start the download straight away (a .zip when there are several files)
   // Progress and results sit under the tool, so bring them into view when they appear
   function reveal(node) {
     node.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
   }
+  // Show the result card, then start the download straight away (a .zip when there are several files)
   async function finish(tool, title, outputs, zipName) {
     setStatus(tool, "info", "Finishing up…", 1);
     await tick();
