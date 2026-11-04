@@ -18,11 +18,18 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 
 **Known small items**
 - The gear icon from the mockup was left out because there are no settings yet.
-- The hero illustration keeps its dark colours in the light theme.
 - The claude.ai copy can't show the Docura favicon, because claude.ai controls that tab icon.
 - Browser storage keys still use the old `pdfpress-` prefix for tabs and errors. Harmless, and renaming would lose saved choices.
 
 ## History
+
+### 2026-11-04: Tools first, no hero
+- Owner's request: Docura is a utility, so the tools must be on the first screen without scrolling. The hero (headline, illustration, intro text) is gone. The headline stays for screen readers and search only.
+- The PDF / Image switch moved into a slimmer top bar. Tool cards are now one short row with one-line descriptions and no arrow buttons. The drop zone and the feature strip are smaller.
+- Once files are added, the drop zone shrinks to one row. On desktops (1000 px and wider), files sit on the left and options and the main button on the right. Long file lists scroll inside their own box, so the main button stays on screen.
+- The page now scrolls to progress, results and errors when they appear, because they sit below the tool.
+- Tested at 1366×650: the main button of all 7 tools is on the first screen with the sample files, and 12 files in Merge also fit. No sideways scrolling at 375 px on any tool. On the 650 px height, results and part of the feature strip can still sit below the first screen.
+- `APP_VERSION` is now `2026-11-04.1`.
 
 ### 2026-11-02: Docura moved to its own repository
 - The previous repository was renamed `toolhub` and is now the home page for all the owner's tools. A new `docura` repository holds this code and its full history, so the public `/docura/` address stays the same.
