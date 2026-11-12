@@ -149,6 +149,22 @@ button { font-family: var(--f-body); }
 .drop-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
 .drop-hint { font-size: 13px; color: var(--muted); }
 .drop-icon { color: var(--accent-text); margin-bottom: 4px; }
+/* The drop zone takes the colour of the selected tool card */
+.drop[class*="tone-"] { border: 1.5px solid color-mix(in srgb, var(--card-a) 75%, transparent); background: radial-gradient(700px 300px at 0% 50%, color-mix(in srgb, var(--card-a) 26%, transparent), transparent 70%), radial-gradient(600px 260px at 100% 0%, color-mix(in srgb, var(--card-b) 16%, transparent), transparent 70%), var(--surface); box-shadow: 0 0 0 1px color-mix(in srgb, var(--card-a) 18%, transparent), 0 14px 44px color-mix(in srgb, var(--card-a) 22%, transparent); }
+.drop[class*="tone-"]:hover, .drop[class*="tone-"].over { border-color: var(--card-ring-drop); }
+.drop[class*="tone-"] { --card-ring-drop: color-mix(in srgb, var(--card-a) 60%, #fff); }
+.drop[class*="tone-"] .drop-icon { color: var(--tone); }
+.drop .big em { font-style: normal; color: var(--tone, var(--accent-text)); }
+.drop-art { display: none; }
+@media (min-width: 760px) {
+  .panel:not(:has(> .files > li)) > .drop[class*="tone-"] { grid-template-columns: minmax(180px, 30%) minmax(0, 1fr); column-gap: 32px; padding: 20px 28px; }
+  .panel:not(:has(> .files > li)) > .drop[class*="tone-"] > :not(.drop-art) { grid-column: 2; }
+  .panel:not(:has(> .files > li)) > .drop[class*="tone-"] > .drop-art { display: grid; place-items: center; grid-column: 1; grid-row: 1 / span 6; align-self: stretch; padding-right: 28px; border-right: 1px solid var(--line); }
+  .panel:not(:has(> .files > li)) > .drop[class*="tone-"] > .drop-icon { display: none; }
+  .panel:not(:has(> .files > li)) > .drop[class*="tone-"] .big { font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; }
+}
+.drop-art svg { width: 100%; max-width: 240px; height: auto; }
+.drop:hover .drop-art .badge, .drop.over .drop-art .badge { animation: bob 1s ease-in-out infinite; }
 
 .btn { appearance: none; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--fg); font-weight: 500; font-size: 14px; padding: 10px 18px; border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: border-color .15s, filter .15s, transform .15s; }
 .btn:hover { border-color: var(--accent); }
@@ -373,7 +389,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  .job, .results, .file.enter, .done-ic, .drop-icon, .drop.over, .thumb:empty, .progress i, .est-total, .pipe, .cd-ring .bar { animation: none !important; }
+  .job, .results, .file.enter, .done-ic, .drop-icon, .drop-art .badge, .drop.over, .thumb:empty, .progress i, .est-total, .pipe, .cd-ring .bar { animation: none !important; }
   .done-ic path { stroke-dashoffset: 0; }
   .progress.indeterminate i { width: 100%; opacity: .5; }
 }
@@ -465,7 +481,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- MERGE -->
   <section class="panel" id="panel-merge" role="tabpanel" aria-labelledby="tab-merge">
     <div class="drop" data-drop="merge">
-      <div class="big">Drop PDFs to merge</div>
+      <div class="big">Merge <em>PDFs</em></div>
       <p>Add two or more files, then drag them into the order you want.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-merge">Choose PDFs</label>
@@ -485,7 +501,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- SPLIT -->
   <section class="panel" id="panel-split" role="tabpanel" aria-labelledby="tab-split" hidden>
     <div class="drop" data-drop="split">
-      <div class="big">Drop a PDF to split</div>
+      <div class="big">Split <em>PDFs</em></div>
       <p>Pull out page ranges or break the document into equal parts.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-split">Choose a PDF</label>
@@ -525,7 +541,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- COMPRESS -->
   <section class="panel" id="panel-compress" role="tabpanel" aria-labelledby="tab-compress" hidden>
     <div class="drop" data-drop="compress">
-      <div class="big">Drop PDFs to compress</div>
+      <div class="big">Compress <em>PDFs</em></div>
       <p>Works best on scanned documents and image-heavy files.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-compress">Choose PDFs</label>
@@ -555,7 +571,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- PDF EXACT SIZE -->
   <section class="panel" id="panel-pdfsize" role="tabpanel" aria-labelledby="tab-pdfsize" hidden>
     <div class="drop" data-drop="pdfsize">
-      <div class="big">Drop PDFs to fit a size</div>
+      <div class="big">Compress to <em>Exact Size</em></div>
       <p>Pick a size limit, and each PDF is compressed to fit under it.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-pdfsize">Choose PDFs</label>
@@ -590,7 +606,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- IMAGE COMPRESS -->
   <section class="panel" id="panel-imgcompress" role="tabpanel" aria-labelledby="tab-imgcompress" hidden>
     <div class="drop" data-drop="imgcompress" data-more="Add more images">
-      <div class="big">Drop images to compress</div>
+      <div class="big">Compress <em>Images</em></div>
       <p>JPG, PNG, WebP, GIF, BMP, TIFF, HEIC and AVIF. Mix formats freely.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-imgcompress">Choose images</label>
@@ -641,7 +657,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- IMAGE EXACT SIZE -->
   <section class="panel" id="panel-imgsize" role="tabpanel" aria-labelledby="tab-imgsize" hidden>
     <div class="drop" data-drop="imgsize" data-more="Add more images">
-      <div class="big">Drop images to fit a size</div>
+      <div class="big">Compress to <em>Exact Size</em></div>
       <p>Pick a size limit, and each image is compressed to fit under it.</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-imgsize">Choose images</label>
@@ -683,7 +699,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <!-- IMAGE CONVERT -->
   <section class="panel" id="panel-convert" role="tabpanel" aria-labelledby="tab-convert" hidden>
     <div class="drop" data-drop="convert" data-more="Add more images">
-      <div class="big">Drop images to convert</div>
+      <div class="big">Convert <em>Images</em></div>
       <p>Each file's format is detected automatically, so you can mix JPG, PNG, WebP, HEIC and more</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-convert">Choose images</label>
@@ -1054,7 +1070,9 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
     $("#act-" + tool).hidden = !has;
     const opts = $("#opts-" + tool); if (opts) opts.hidden = !has;
     const drop = $(`[data-drop="${tool}"]`);
-    drop.querySelector(".big").textContent = has && tool !== "split" ? (drop.dataset.more || "Add more PDFs") : has ? "Choose a different PDF" : drop.dataset.title;
+    const big = drop.querySelector(".big");
+    if (has) big.textContent = tool !== "split" ? (drop.dataset.more || "Add more PDFs") : "Choose a different PDF";
+    else big.innerHTML = drop.dataset.title; // our own static markup
     if (tool === "convert") updateConvertHint();
     if (SIZE_TOOLS.includes(tool)) refreshTarget(tool);
     if (tool === "merge") {
@@ -2168,15 +2186,40 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   }));
   try { const last = localStorage.getItem("pdfpress-tab"); if (last) showTool(last); } catch (_) {}
 
+  // Illustration beside the drop zone: one or two documents and a badge showing what the tool does
+  function dropArt(tool) {
+    const label = IMG_TOOLS.includes(tool) ? "IMG" : "PDF";
+    const two = tool === "merge" || tool === "convert";
+    const glyph = {
+      merge: '<path d="M0-11v22M-11 0h22"/>',
+      split: '<circle cx="-6" cy="-7" r="3.6"/><circle cx="-6" cy="7" r="3.6"/><path d="M11-10-3 4M11 10-3-4"/>',
+      compress: '<path d="M-11-11-3-3M-3-9v6h-6M11-11 3-3M3-9v6h6M-11 11-3 3M-3 9V3h-6M11 11 3 3M3 9V3h6"/>',
+      imgcompress: '<path d="M-11-11-3-3M-3-9v6h-6M11-11 3-3M3-9v6h6M-11 11-3 3M-3 9V3h-6M11 11 3 3M3 9V3h6"/>',
+      pdfsize: '<circle r="11"/><circle r="5"/><circle r="1" fill="#fff"/>',
+      imgsize: '<circle r="11"/><circle r="5"/><circle r="1" fill="#fff"/>',
+      convert: '<path d="M-10-3a10 10 0 0 1 18-5l2 2M10-11v5H5M10 3a10 10 0 0 1-18 5l-2-2M-10 11V6h-5"/>',
+    }[tool];
+    const doc = (x, y, r) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 0h50l20 20v74a8 8 0 0 1-8 8H8a8 8 0 0 1-8-8V8a8 8 0 0 1 8-8z" fill="#eef0fb"/><path d="M50 0v14a6 6 0 0 0 6 6h14z" fill="#c9cde6"/><rect x="-8" y="40" width="62" height="24" rx="6" fill="var(--card-a)"/><text x="23" y="58" text-anchor="middle" font-family="Outfit, sans-serif" font-weight="700" font-size="16" fill="#fff">${label}</text></g>`;
+    return `<svg viewBox="0 0 240 180"><ellipse cx="118" cy="96" rx="104" ry="74" fill="color-mix(in srgb, var(--card-a) 22%, transparent)"/>` +
+      (two ? doc(46, 34, -10) + doc(122, 42, 10) : doc(84, 30, -4)) +
+      `<g stroke="var(--tone)" stroke-width="4" stroke-linecap="round"><path d="M200 26l-6 12M214 44l-12 6M216 66h-12"/></g>` +
+      `<g class="badge"><g transform="translate(${two ? 120 : 160} 140)"><circle r="24" fill="var(--card-a)" stroke="color-mix(in srgb, var(--card-a) 50%, #fff)" stroke-width="2"/><g fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${glyph}</g></g></g></svg>`;
+  }
+
   Object.keys(state).forEach(tool => {
     const drop = $(`[data-drop="${tool}"]`);
-    drop.dataset.title = drop.querySelector(".big").textContent;
+    drop.dataset.title = drop.querySelector(".big").innerHTML;
+    const tone = [...$("#tab-" + tool).classList].find(c => c.startsWith("tone-"));
+    if (tone) drop.classList.add(tone);
+    const art = el("div", { class: "drop-art", "aria-hidden": "true" });
+    art.innerHTML = dropArt(tool); // our own static markup
+    drop.prepend(art);
     const icon = document.createElement("div");
     icon.className = "drop-icon";
     icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="M9.5 13.5 12 11l2.5 2.5"/></svg>';
     drop.prepend(icon);
     const input = $("#in-" + tool);
-    drop.append(el("span", { class: "drop-hint", text: IMG_TOOLS.includes(tool) ? "or click to browse, or paste (Ctrl+V) · JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, AVIF, ICO, SVG" : "or click to browse, or paste (Ctrl+V) · Supports PDF files only" }));
+    drop.append(el("span", { class: "drop-hint", text: IMG_TOOLS.includes(tool) ? "Drop here, click to browse, or paste (Ctrl+V) · JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, AVIF, ICO, SVG" : "Drop here, click to browse, or paste (Ctrl+V) · Supports PDF files only" }));
     drop.addEventListener("click", e => { if (!e.target.closest("button, label, input")) input.click(); });
     input.addEventListener("change", async () => { addItems(tool, await readFiles(tool, input.files)); input.value = ""; });
     drop.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); drop.classList.add("over"); } });

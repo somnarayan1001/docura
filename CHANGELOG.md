@@ -24,6 +24,13 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 
 ## History
 
+### 2026-11-12: Drop zone matches the selected card
+- Owner's request, from their mockup: the drop zone now takes the colour of the selected tool card (violet, pink, green or blue), with a coloured border, glow and tint.
+- The heading is the tool's name with the last word in the card colour, for example "Merge **PDFs**", instead of "Drop PDFs to merge". The hint line now starts "Drop here, click to browse, or paste".
+- On screens 760 px and wider, an illustration sits on the left behind a divider: one or two documents labelled PDF or IMG, and a badge for the tool (plus, scissors, arrows, target, or convert arrows). It is drawn in code, so it follows the card colour in both themes. Phones keep the small upload icon instead.
+- Once files are added, the drop zone shrinks to one row as before, with no illustration.
+- Checked at 1366×650: the main button of all 7 tools is still on the first screen with the sample files. No sideways scrolling at 375 px. Light theme checked.
+
 ### 2026-11-12: Coloured tool cards
 - Owner's request, from their mockup: the tool cards in both categories are now solid colour cards (violet, pink, green, blue) with a white icon box, white text and an arrow on the right.
 - The open tool has a coloured ring. The others are slightly dimmed and brighten on hover.

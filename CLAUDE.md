@@ -91,7 +91,7 @@ Element ids follow the tool id, and the `wiring` section connects them through `
 - Exact-size targets count 1 KB as 1000 bytes, so results also pass websites that count 1 KB as 1024 bytes. A result is only called under the target after its real size is measured. If a file can't reach the target, the result says so.
 - The YouTube and Instagram downloader was considered and left out: it would need a server, which breaks "Nothing leaves the device", and it carries legal risk. Don't offer it again unless the owner asks.
 - No Google Drive for logs. Errors are JSON: kept in the browser (last 20), with "Copy error details" and "Download error log (.json)" buttons. The owner chose to have people send the file by hand.
-- Brand: the Docura logo and dark indigo design from the owner's mockup, minus its hero. Tool cards are solid colour cards with an arrow, as in the owner's second mockup; their colours are the `--card-*` variables. Plain language in the interface.
+- Brand: the Docura logo and dark indigo design from the owner's mockup, minus its hero. Tool cards are solid colour cards with an arrow, as in the owner's second mockup; their colours are the `--card-*` variables. The drop zone takes the selected card's tone class and shows a `dropArt` illustration beside it. Plain language in the interface.
 
 ## Testing
 
