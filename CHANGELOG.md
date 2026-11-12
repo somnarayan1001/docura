@@ -11,6 +11,7 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 - The save confirmation on the claude.ai copy with a real file.
 - The original report: the 251 MB one-page PDF that failed on someone else's device. The fix was tested by forcing the failure, not on that file or device.
 - Image links on the claude.ai copy. Its security rules probably block fetching other websites, so the page points people to the public site. That message was only tested by imitating the failure.
+- Pasting with a real clipboard: an image copied from a web page, and files copied in File Explorer (several at once, and in Firefox and Safari). Only tested with simulated paste events.
 
 **Offered, not started (the owner hasn't decided)**
 - Automatic error collection: a free Cloudflare Worker saving JSON reports to a private GitHub repository, plus scheduled checks. It needs the owner to create a Cloudflare account and a limited GitHub key. `LOG_ENDPOINT` in the code is ready and empty. Google Drive was ruled out.
@@ -22,6 +23,13 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 - Browser storage keys still use the old `pdfpress-` prefix for tabs and errors. Harmless, and renaming would lose saved choices.
 
 ## History
+
+### 2026-11-12: Paste files with Ctrl+V
+- Owner's request: press Ctrl+V anywhere on the page to add to the open tool an image copied in the browser ("Copy image") or files copied on the computer (File Explorer, Finder). Works in every tool: images in the image tools, PDFs in the PDF tools.
+- Browsers name a copied picture `image.png`, so pasted pictures are renamed `pasted-image-1.png`, `-2`, and so on. Files copied from the computer keep their names.
+- Pasting an image into a PDF tool says to use an Image tool instead. Pasting a copied image link on Convert, outside a text box, fills the link box and fetches it. Pasting text into a text box works as before.
+- The drop-zone hint now mentions paste. Checked at 375 px with no sideways scrolling.
+- `APP_VERSION` is now `2026-11-12.1`.
 
 ### 2026-11-04: Tools first, no hero
 - Owner's request: Docura is a utility, so the tools must be on the first screen without scrolling. The hero (headline, illustration, intro text) is gone. The headline stays for screen readers and search only.

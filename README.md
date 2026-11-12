@@ -17,4 +17,6 @@ Docura: PDF & image tools that run in your browser. Files are processed on your 
 
 Reads JPG, PNG, WebP, GIF, BMP, TIFF, HEIC/HEIF, AVIF, ICO and SVG.
 
+Add files by choosing them, dragging them in, or pasting with Ctrl+V: an image copied in your browser ("Copy image"), or files copied on your computer.
+
 Built with [pdf-lib](https://pdf-lib.js.org/), [PDF.js](https://mozilla.github.io/pdf.js/), [JSZip](https://stuk.github.io/jszip/), [heic2any](https://github.com/alexcorvi/heic2any) and [UTIF.js](https://github.com/photopea/UTIF.js).

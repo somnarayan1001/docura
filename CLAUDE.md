@@ -83,6 +83,7 @@ Element ids follow the tool id, and the `wiring` section connects them through `
 ## Behaviour the owner asked for
 
 - Tools first: no hero. The category switch, tool cards, drop zone, options and main button must fit the first screen on a desktop (checked at 1366×650), because this is a utility. Keep new options compact.
+- Files can be added by browsing, drag and drop, or paste (Ctrl+V) anywhere on the page, which goes to the open tool. Pasted pictures named `image.png` by the browser become `pasted-image-N`.
 - PDF results download automatically after a 5-second countdown. Choosing a "Continue with" tool cancels the download, and "Download now" skips the wait. Image tools download immediately.
 - Several output files download as one `.zip`.
 - Work in progress shows moving cues: button spinner, striped progress bar with percentage, loading placeholders, animated result card.

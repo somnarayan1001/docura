@@ -762,7 +762,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   // Each error becomes a JSON report: kept in this browser (last 20), downloadable as a .json file,
   // and POSTed as JSON to LOG_ENDPOINT once one is set. Reports never include file contents or file names.
   const LOG_ENDPOINT = "";
-  const APP_VERSION = "2026-11-04.1";
+  const APP_VERSION = "2026-11-12.1";
   let diag = {};
   const fileFacts = list => list.map(x => x.format
     ? { sizeMB: +(x.size / 1048576).toFixed(2), format: x.format, ext: (x.name.match(/\.([^.]+)$/) || [])[1] || "", dims: x.width + "x" + x.height, sample: x.sample }
@@ -2158,7 +2158,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
     icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 17v-6"/><path d="M9.5 13.5 12 11l2.5 2.5"/></svg>';
     drop.prepend(icon);
     const input = $("#in-" + tool);
-    drop.append(el("span", { class: "drop-hint", text: IMG_TOOLS.includes(tool) ? "or click to browse · JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, AVIF, ICO, SVG" : "or click to browse · Supports PDF files only" }));
+    drop.append(el("span", { class: "drop-hint", text: IMG_TOOLS.includes(tool) ? "or click to browse, or paste (Ctrl+V) · JPG, PNG, WebP, GIF, BMP, TIFF, HEIC, AVIF, ICO, SVG" : "or click to browse, or paste (Ctrl+V) · Supports PDF files only" }));
     drop.addEventListener("click", e => { if (!e.target.closest("button, label, input")) input.click(); });
     input.addEventListener("change", async () => { addItems(tool, await readFiles(tool, input.files)); input.value = ""; });
     drop.addEventListener("dragover", e => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); drop.classList.add("over"); } });
@@ -2179,6 +2179,37 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
     e.preventDefault();
     const tool = $(".tab[aria-selected='true']").dataset.tool;
     addItems(tool, await readFiles(tool, e.dataTransfer.files));
+  });
+  // Paste (Ctrl+V): an image copied in a browser, or files copied in File Explorer / Finder, go to the active tool
+  let pasteCount = 0;
+  document.addEventListener("paste", async e => {
+    const cd = e.clipboardData;
+    if (!cd) return;
+    const target = e.target instanceof Element ? e.target : null;
+    const typing = target && target.closest("textarea, [contenteditable]:not([contenteditable='false']), input:not([type='file'])");
+    let files = [...cd.files];
+    if (!files.length) files = [...cd.items].filter(i => i.kind === "file").map(i => i.getAsFile()).filter(Boolean);
+    const tool = $(".tab[aria-selected='true']").dataset.tool;
+    if (!files.length) {
+      // A copied image link pasted outside a text box on Convert goes into the link box
+      const text = (cd.getData("text/plain") || "").trim();
+      if (!typing && tool === "convert" && /^https?:\/\/\S+$/i.test(text)) {
+        e.preventDefault();
+        $("#url-input").value = text;
+        $("#url-convert").requestSubmit();
+      }
+      return;
+    }
+    if (target && target.closest("textarea, [contenteditable]:not([contenteditable='false'])")) return;
+    e.preventDefault();
+    // Browsers name a copied picture "image.png"; give each one its own name so downloads don't collide
+    files = files.map(f => {
+      if (f.name && !/^image\.[a-z0-9]+$/i.test(f.name)) return f;
+      const ext = (f.type.split("/")[1] || "png").replace("jpeg", "jpg").replace(/\+.*$/, "");
+      return new File([f], "pasted-image-" + (++pasteCount) + "." + ext, { type: f.type, lastModified: f.lastModified });
+    });
+    if (PDF_TOOLS.includes(tool) && files.every(f => /^image\//.test(f.type))) return setStatus(tool, "err", "That's an image. Paste images into an Image tool, or paste a PDF here.");
+    addItems(tool, await readFiles(tool, files));
   });
 
   Object.keys(state).forEach(render);
