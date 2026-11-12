@@ -24,6 +24,13 @@ Newest first. Add an entry with every change, and keep "Open items" current.
 
 ## History
 
+### 2026-11-12: Coloured tool cards
+- Owner's request, from their mockup: the tool cards in both categories are now solid colour cards (violet, pink, green, blue) with a white icon box, white text and an arrow on the right.
+- The open tool has a coloured ring. The others are slightly dimmed and brighten on hover.
+- Card descriptions now follow the mockup, for example "Combine PDFs in any order" and "Get a PDF of your desired size".
+- Card colours are new `--card-*` variables, defined for both themes. On phones the arrow is hidden to save room.
+- Checked at 1366×650: the main button of all 7 tools is still on the first screen with the sample files. No sideways scrolling at 375 px. Light theme checked.
+
 ### 2026-11-12: Paste files with Ctrl+V
 - Owner's request: press Ctrl+V anywhere on the page to add to the open tool an image copied in the browser ("Copy image") or files copied on the computer (File Explorer, Finder). Works in every tool: images in the image tools, PDFs in the PDF tools.
 - Browsers name a copied picture `image.png`, so pasted pictures are renamed `pasted-image-1.png`, `-2`, and so on. Files copied from the computer keep their names.

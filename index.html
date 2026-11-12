@@ -48,6 +48,10 @@
   --blue: #6ea8ff;
   --blue-soft: #111f3f;
   --thumb-bg: #ffffff;
+  --card-violet-a: #7a5cf5; --card-violet-b: #4c34c9;
+  --card-pink-a: #e5396f; --card-pink-b: #a8124a;
+  --card-green-a: #18994c; --card-green-b: #0b6630;
+  --card-blue-a: #2f6fea; --card-blue-b: #1842b8;
   --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 36px rgba(0,0,0,.35);
   --glow: 0 0 0 1px rgba(123,110,246,.6), 0 12px 40px rgba(123,110,246,.22);
   --f-display: "Outfit", "Segoe UI", system-ui, sans-serif;
@@ -56,6 +60,10 @@
   color-scheme: dark;
 }
 :root[data-theme="light"] {
+  --card-violet-a: #6d4ff0; --card-violet-b: #4a30c4;
+  --card-pink-a: #dc2f66; --card-pink-b: #a3104a;
+  --card-green-a: #158a44; --card-green-b: #0a5f2c;
+  --card-blue-a: #2563eb; --card-blue-b: #1740b0;
   --bg: #f4f5fb;
   --glow-1: rgba(123, 110, 246, .16);
   --glow-2: rgba(91, 124, 250, .10);
@@ -127,18 +135,20 @@ button { font-family: var(--f-body); }
 
 /* tool cards (the tabs) */
 .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.tab { appearance: none; text-align: left; color: var(--fg); font: inherit; cursor: pointer; display: grid; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); transition: border-color .2s, box-shadow .2s, background .2s; }
-.tab:hover { border-color: var(--line-strong); }
-.tab .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--tone-soft); color: var(--tone); transition: background .2s, color .2s; }
-.tab .ic svg { width: 21px; height: 21px; }
-.tab b { display: block; font-family: var(--f-display); font-weight: 600; font-size: 15px; line-height: 1.25; letter-spacing: -.005em; }
-.tab small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; margin-top: 1px; }
-.tab[aria-selected="true"] { border-color: var(--accent); background: linear-gradient(135deg, var(--accent-soft), var(--surface) 75%); box-shadow: var(--glow); }
-.tab[aria-selected="true"] .ic { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
-.tone-violet { --tone: var(--accent-text); --tone-soft: var(--accent-soft); }
-.tone-pink { --tone: var(--pink); --tone-soft: var(--pink-soft); }
-.tone-green { --tone: var(--green); --tone-soft: var(--green-soft); }
-.tone-blue { --tone: var(--blue); --tone-soft: var(--blue-soft); }
+.tab { appearance: none; position: relative; text-align: left; color: #fff; font: inherit; cursor: pointer; display: grid; grid-template-columns: 42px minmax(0, 1fr) 18px; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 14px; border: 1px solid var(--card-edge); background: linear-gradient(135deg, var(--card-a), var(--card-b)); box-shadow: 0 6px 18px var(--card-shadow); filter: saturate(.85) brightness(.86); transition: filter .2s, box-shadow .2s, transform .2s; }
+.tab:hover { filter: none; transform: translateY(-1px); }
+.tab .ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.22); color: #fff; }
+.tab .ic svg { width: 22px; height: 22px; }
+.tab b { display: block; font-family: var(--f-display); font-weight: 600; font-size: 15.5px; line-height: 1.25; letter-spacing: -.005em; text-shadow: 0 1px 2px rgba(0,0,0,.18); }
+.tab small { display: block; color: rgba(255,255,255,.88); font-size: 12.5px; line-height: 1.35; margin-top: 1px; }
+.tab .chev { color: rgba(255,255,255,.9); transition: transform .2s; }
+.tab:hover .chev { transform: translateX(2px); }
+.tab[aria-selected="true"] { filter: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--card-ring), 0 10px 30px var(--card-shadow); }
+.tone-violet { --tone: var(--accent-text); --tone-soft: var(--accent-soft); --card-a: var(--card-violet-a); --card-b: var(--card-violet-b); }
+.tone-pink { --tone: var(--pink); --tone-soft: var(--pink-soft); --card-a: var(--card-pink-a); --card-b: var(--card-pink-b); }
+.tone-green { --tone: var(--green); --tone-soft: var(--green-soft); --card-a: var(--card-green-a); --card-b: var(--card-green-b); }
+.tone-blue { --tone: var(--blue); --tone-soft: var(--blue-soft); --card-a: var(--card-blue-a); --card-b: var(--card-blue-b); }
+.tab { --card-edge: color-mix(in srgb, var(--card-a) 55%, #fff); --card-ring: color-mix(in srgb, var(--card-a) 70%, #fff); --card-shadow: color-mix(in srgb, var(--card-a) 35%, transparent); }
 
 /* tool panel */
 .panel { display: grid; gap: 12px; }
@@ -354,6 +364,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   .cat { flex: 1; justify-content: center; padding: 8px 12px; }
   .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .tab { gap: 8px; padding: 8px; grid-template-columns: 32px minmax(0, 1fr); }
+  .tab .chev { display: none; }
   .tab .ic { width: 32px; height: 32px; }
   .tab .ic svg { width: 18px; height: 18px; }
   .tab b { font-size: 13.5px; }
@@ -428,31 +439,38 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <nav class="tabs" role="tablist" aria-label="Tools">
     <button class="tab tone-violet" role="tab" id="tab-merge" aria-selected="true" data-tool="merge" data-cat="pdf">
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h6l4 4v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 3v4h4"/><path d="M4 8v11a2 2 0 0 0 2 2h9"/><path d="M9 12h6M9 15h4"/></svg></span>
-      <span><b>Merge PDFs</b><small>Combine PDFs into one file.</small></span>
+      <span><b>Merge PDFs</b><small>Combine PDFs in any order</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-pink" role="tab" id="tab-split" aria-selected="false" data-tool="split" data-cat="pdf">
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></span>
-      <span><b>Split PDFs</b><small>Pull out pages or break it up.</small></span>
+      <span><b>Split PDFs</b><small>Extract pages or create parts</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-green" role="tab" id="tab-compress" aria-selected="false" data-tool="compress" data-cat="pdf">
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l6 6M10 5v5H5M20 4l-6 6M14 5v5h5M4 20l6-6M10 19v-5H5M20 20l-6-6M14 19v-5h5"/></svg></span>
-      <span><b>Compress PDFs</b><small>Three quality levels.</small></span>
+      <span><b>Compress PDFs</b><small>Reduce file size easily</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-blue" role="tab" id="tab-pdfsize" aria-selected="false" data-tool="pdfsize" data-cat="pdf">
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
-      <span><b>Compress to Exact Size</b><small>Fit under a size, like 500 KB.</small></span>
+      <span><b>Compress to Exact Size</b><small>Get a PDF of your desired size</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-green" role="tab" id="tab-imgcompress" aria-selected="false" data-tool="imgcompress" data-cat="img" hidden>
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="13" height="11" rx="2"/><path d="m3 13 4-4 4 4M13 11l1-1"/><path d="M21 14v6h-6M21 20l-5-5"/></svg></span>
-      <span><b>Compress Images</b><small>Shrink photos, with live sizes.</small></span>
+      <span><b>Compress Images</b><small>Shrink photos with live sizes</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-violet" role="tab" id="tab-imgsize" aria-selected="false" data-tool="imgsize" data-cat="img" hidden>
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
-      <span><b>Compress to Exact Size</b><small>Fit under a size, like 50 KB.</small></span>
+      <span><b>Compress to Exact Size</b><small>Get an image of your desired size</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
     <button class="tab tone-blue" role="tab" id="tab-convert" aria-selected="false" data-tool="convert" data-cat="img" hidden>
       <span class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8a8 8 0 0 1 14-3l2 2M20 3v4h-4"/><path d="M20 16a8 8 0 0 1-14 3l-2-2M4 21v-4h4"/></svg></span>
-      <span><b>Convert Images</b><small>JPG, PNG, WebP, HEIC and more.</small></span>
+      <span><b>Convert Images</b><small>JPG, PNG, WebP, HEIC and more</small></span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
     </button>
   </nav>
 
@@ -678,7 +696,7 @@ footer p { margin: 0 0 2px; max-width: 120ch; }
   <section class="panel" id="panel-convert" role="tabpanel" aria-labelledby="tab-convert" hidden>
     <div class="drop" data-drop="convert" data-more="Add more images">
       <div class="big">Drop images to convert</div>
-      <p>Each file's format is detected automatically, so you can mix JPG, PNG, WebP, HEIC and more.</p>
+      <p>Each file's format is detected automatically, so you can mix JPG, PNG, WebP, HEIC and more</p>
       <div class="drop-actions">
         <label class="btn primary" for="in-convert">Choose images</label>
         <button class="btn" data-sample="convert">Try with sample images</button>
